@@ -54,7 +54,7 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/main.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="459">
+            <state relative-caret-position="60">
               <caret line="25" column="13" lean-forward="true" selection-start-line="25" selection-start-column="13" selection-end-line="25" selection-end-column="13" />
               <folding>
                 <element signature="e#0#46#0" expanded="true" />
@@ -156,7 +156,7 @@
       </list>
     </option>
   </component>
-  <component name="ProjectFrameBounds" extendedState="1">
+  <component name="ProjectFrameBounds">
     <option name="x" value="167" />
     <option name="y" value="88" />
     <option name="width" value="1687" />
@@ -240,12 +240,12 @@
       <updated>1569733247797</updated>
       <workItem from="1569733249019" duration="537000" />
       <workItem from="1569733809942" duration="11049000" />
-      <workItem from="1569744874008" duration="5975000" />
+      <workItem from="1569744874008" duration="5984000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="17561000" />
+    <option name="totallyTimeSpent" value="17570000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -370,7 +370,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="459">
+        <state relative-caret-position="60">
           <caret line="25" column="13" lean-forward="true" selection-start-line="25" selection-start-column="13" selection-end-line="25" selection-end-column="13" />
           <folding>
             <element signature="e#0#46#0" expanded="true" />
