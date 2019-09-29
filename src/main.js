@@ -1,5 +1,6 @@
 import { app, BrowserWindow } from 'electron';
 import { ipcMain } from 'electron';
+import { ASYNCHRONOUS_MSG, ASYNCHRONOUS_MSG_REPLY } from './const';
 // 是否可以安全退出
 // let safeExit = false;
 
@@ -24,9 +25,8 @@ const createWindow = () => {
 
   // 增加主菜单（在开发测试时会有一个默认菜单，但打包后这个菜单是没有的，需要自己增加）
   // 从模板创建主菜单
-  mainWindow.on('close', (e) => {
+  mainWindow.on('close', () => {
     console.log('close event');
-    console.log(e);
   });
 
   // Emitted when the window is closed.
@@ -61,20 +61,14 @@ app.on('activate', () => {
 ipcMain.on('reqaction', (event, arg) => {
   switch (arg) {
     case 'exit':
-      // 做点其它操作：比如记录窗口大小、位置等，下次启动时自动使用这些设置；
-      // 不过因为这里（主进程）无法访问localStorage，这些数据需要使用其它的方式来保存和加载，
-      // 这里就不作演示了。这里推荐一个相关的工具类库，
-      // 可以使用它在主进程中保存加载配置数据：https://github.com/sindresorhus/electron-store
-      // safeExit = true;
       app.quit();
       break;
     default:
   }
 });
 
-ipcMain.on('asynchronous-msg', (event, arg) => {
+ipcMain.on(ASYNCHRONOUS_MSG, (event, arg) => {
   // 转发消息
-  console.log(`event=${event} arg=$arg`);
-  event.sender.send('asynchronous-msg-reply', arg);
+  event.sender.send(ASYNCHRONOUS_MSG_REPLY, arg);
 });
 
