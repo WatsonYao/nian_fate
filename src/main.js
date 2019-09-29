@@ -72,8 +72,9 @@ ipcMain.on('reqaction', (event, arg) => {
   }
 });
 
-ipcMain.on('asynchronous-msg', (event) => {
+ipcMain.on('asynchronous-msg', (event, arg) => {
   // 转发消息
-  event.sender.send('asynchronous-msg-push', 'push');
+  console.log(`event=${event} arg=$arg`);
+  event.sender.send('asynchronous-msg-reply', arg);
 });
 
