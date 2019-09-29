@@ -1,8 +1,8 @@
 {
-  "name": "nian_note",
-  "productName": "nian_note",
+  "name": "nian",
+  "productName": "nian",
   "version": "1.0.0",
-  "description": "My Electron application description",
+  "description": "nian tools",
   "main": "src/main.js",
   "scripts": {
     "start": "electron-forge start",
@@ -12,7 +12,7 @@
     "lint": "eslint src --color"
   },
   "keywords": [],
-  "author": "yaoyu",
+  "author": "watsonyao<yaoyuan131617@gmail.com>",
   "license": "MIT",
   "config": {
     "forge": {
@@ -29,10 +29,11 @@
         ]
       },
       "electronPackagerConfig": {
-        "packageManager": "npm"
+        "packageManager": "npm",
+        "icon": "src/images/app_icon.ico"
       },
       "electronWinstallerConfig": {
-        "name": "nian_note"
+        "name": "nian"
       },
       "electronInstallerDebian": {},
       "electronInstallerRedhat": {},
@@ -42,19 +43,21 @@
       },
       "windowsStoreConfig": {
         "packageName": "",
-        "name": "nian_note"
+        "name": "nian"
       }
     }
   },
   "dependencies": {
     "electron-compile": "^6.4.4",
-    "electron-squirrel-startup": "^1.0.0"
+    "electron-squirrel-startup": "^1.0.0",
+    "ws": "^7.1.2"
   },
   "devDependencies": {
     "babel-plugin-transform-async-to-generator": "^6.24.1",
     "babel-preset-env": "^1.7.0",
     "babel-preset-react": "^6.24.1",
     "electron-forge": "^5.2.4",
+    "electron-packager": "^14.0.6",
     "electron-prebuilt-compile": "4.0.0",
     "eslint": "^3.19.0",
     "eslint-config-airbnb": "^15.1.0",

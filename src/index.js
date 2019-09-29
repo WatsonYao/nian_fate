@@ -1,109 +1,57 @@
 import { ipcRenderer, remote } from 'electron';
-const { Menu, MenuItem, dialog } = remote;
 
-let currentFile = null; //当前文档保存的路径
-let isSaved = true;     //当前文档是否已保存
-let txtEditor = document.getElementById('txtEditor'); //获得TextArea文本框的引用
+const WebSocket = require('ws');
 
-document.title = "Notepad - Untitled"; //设置文档标题，影响窗口标题栏名称
+const port = 20202;
+const ws = new WebSocket('ws://192.168.47.205:20202/ws');
 
-//给文本框增加右键菜单
-const contextMenuTemplate=[
-    { role: 'undo' },       //Undo菜单项
-    { role: 'redo' },       //Redo菜单项
-    { type: 'separator' },  //分隔线
-    { role: 'cut' },        //Cut菜单项
-    { role: 'copy' },       //Copy菜单项
-    { role: 'paste' },      //Paste菜单项
-    { role: 'delete' },     //Delete菜单项
-    { type: 'separator' },  //分隔线
-    { role: 'selectall' }   //Select All菜单项
-];
-const contextMenu=Menu.buildFromTemplate(contextMenuTemplate);
-txtEditor.addEventListener('contextmenu', (e)=>{
-    e.preventDefault();
-    contextMenu.popup(remote.getCurrentWindow());
-});
 
-//监控文本框内容是否改变
-txtEditor.oninput=(e)=>{
-    if(isSaved) document.title += " *";
-    isSaved=false;
+const txtEditor = document.getElementById('txtEditor');
+const remote_host = document.getElementById('remote_host');
+const local_client = document.getElementById('local_client');
+
+console.log(`port ${port}`);
+// 新建一个WebSocket通信，连接一个端口号为3000的本地服务器
+ws.onopen = function (e) {
+// 连接建立时触发函数
+  console.log(`onopen readyState=${ws.readyState} e=${e}`);
+  remote_host.innerText = `已连接到远端主机:${ws._socket.remoteAddress}:${ws._socket.remotePort}`;
+  local_client.innerText = `本机地址:${ws._socket.localAddress}:${ws._socket.localPort}`;
+  if (ws.readyState == 1) {
+    // 发送一个消息，表示设备情况
+    // todo 需要添加设备信息
+    var deviceInfo = {
+      ip: ws._socket.localAddress,
+      port: ws._socket.localPort,
+      model: 'pc-win',
+    };
+    var device = {
+      content: deviceInfo,
+      module: 'sys',
+      action: 'info',
+    };
+    ws.send(JSON.stringify(device));
+  }
+// 只读属性readyState表示连接状态
+};
+ws.onmessage = function (event) {
+  console.log(`onmessage event=${event}`);
+// 客户端接收服务端数据时触发
+};
+ws.onclose = function (evt) {
+  // 连接关闭时触发
+  console.log(`onclose! ${evt}`);
 };
 
-//监听与主进程的通信
-ipcRenderer.on('action', (event, arg) => {
-    switch(arg){
-    case 'new': //新建文件
-        askSaveIfNeed();
-        currentFile=null;
-        txtEditor.value='';
-        document.title = "Notepad - Untitled";
-        //remote.getCurrentWindow().setTitle("Notepad - Untitled *");
-        isSaved=true;
-        break;
-    case 'open': //打开文件
-        askSaveIfNeed();
-        const files = remote.dialog.showOpenDialog(remote.getCurrentWindow(), {
-            filters: [
-                { name: "Text Files", extensions: ['txt', 'js', 'html', 'md'] },
-                { name: 'All Files', extensions: ['*'] } ],
-            properties: ['openFile']
-        });
-        if(files){
-            currentFile=files[0];
-            const txtRead=readText(currentFile);
-            txtEditor.value=txtRead;
-            document.title = "Notepad - " + currentFile;
-            isSaved=true;
-        }
-        break;
-    case 'save': //保存文件
-        saveCurrentDoc();
-        break;
-    case 'exiting':
-        askSaveIfNeed();
-        ipcRenderer.sendSync('reqaction', 'exit');
-        break;
-    }
+
+ipcRenderer.on('asynchronous-msg-push', () => {
+  // 进展模块的 信息
+  // action 替换replace,追加append
+  var step = {
+    content: txtEditor.value,
+    module: 'step',
+    action: 'append',
+  };
+  console.log(`read step ${step}`);
+  ws.send(JSON.stringify(step));
 });
-
-//读取文本文件
-function readText(file){
-    const fs = require('fs');
-    return fs.readFileSync(file, 'utf8');
-}
-//保存文本内容到文件
-function saveText(text, file){
-    const fs = require('fs');
-    fs.writeFileSync(file, text);
-}
-
-//保存当前文档
-function saveCurrentDoc(){
-    if(!currentFile){
-        const file = remote.dialog.showSaveDialog(remote.getCurrentWindow(), {
-            filters: [
-                { name: "Text Files", extensions: ['txt', 'js', 'html', 'md'] },
-                { name: 'All Files', extensions: ['*'] } ]
-        });
-        if(file) currentFile=file;
-    }
-    if(currentFile){
-        const txtSave=txtEditor.value;
-        saveText(txtSave, currentFile);
-        isSaved=true;
-        document.title = "Notepad - " + currentFile;
-    }
-}
-
-//如果需要保存，弹出保存对话框询问用户是否保存当前文档
-function askSaveIfNeed(){
-    if(isSaved) return;
-    const response=dialog.showMessageBox(remote.getCurrentWindow(), {
-        message: 'Do you want to save the current document?',
-        type: 'question',
-        buttons: [ 'Yes', 'No' ]
-    });
-    if(response==0) saveCurrentDoc(); //点击Yes按钮后保存当前文档
-}
