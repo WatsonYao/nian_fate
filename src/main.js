@@ -1,5 +1,5 @@
-import { app, BrowserWindow } from 'electron';
-import { ipcMain } from 'electron';
+import { app, BrowserWindow, shell } from 'electron';
+import { Menu, MenuItem, ipcMain } from 'electron';
 import { ASYNCHRONOUS_MSG, ASYNCHRONOUS_MSG_REPLY } from './const';
 // 是否可以安全退出
 // let safeExit = false;
@@ -8,13 +8,42 @@ import { ASYNCHRONOUS_MSG, ASYNCHRONOUS_MSG_REPLY } from './const';
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow;
 
+var appMenuTemplate = [
+  {
+    role: 'help',
+    submenu: [
+      {
+        label: 'source code',
+        click() {
+          shell.openExternal('https://github.com/WatsonYao/nian_fate');
+        },
+      },
+      {
+        label: '版本 0.1',
+      },
+    ],
+  },
+];
+
+const storage = require('electron-localstorage');
+
 const createWindow = () => {
+  let sizeWidth = storage.getItem('width');
+  let sizeHeight = storage.getItem('height');
+
+  if (sizeWidth == undefined) {
+    sizeWidth = 800;
+  }
+  if (sizeHeight == undefined) {
+    sizeHeight = 800;
+  }
+
   // Create the browser window.
   mainWindow = new BrowserWindow({
-    width: 800,
-    height: 600,
+    width: sizeWidth,
+    height: sizeHeight,
     minWidth: 640,
-    minHeight: 360,
+    minHeight: 640,
   });
 
   // and load the index.html of the app.
@@ -23,10 +52,14 @@ const createWindow = () => {
   // Open the DevTools.
   mainWindow.webContents.openDevTools();
 
-  // 增加主菜单（在开发测试时会有一个默认菜单，但打包后这个菜单是没有的，需要自己增加）
-  // 从模板创建主菜单
+  const menu = Menu.buildFromTemplate(appMenuTemplate);
+
+  Menu.setApplicationMenu(menu);
   mainWindow.on('close', () => {
-    console.log('close event');
+    const size = mainWindow.getSize();
+    storage.setItem('width', size[0]);
+    storage.setItem('height', size[1]);
+    console.log(`close event ${mainWindow.getSize()}`);
   });
 
   // Emitted when the window is closed.

@@ -11,9 +11,18 @@
         body, html {
             margin: 16px;
             height: 100%;
+            background: #eeeeee;
         }
 
         .ip_port {
+            font-size: 12px;
+        }
+
+        .field_text_size {
+            font-size: 12px;
+        }
+
+        .radio_size {
             font-size: 12px;
         }
 
@@ -21,65 +30,85 @@
             margin: 8px 0px 8px 0px;
         }
 
+        .mdc-theme--primary {
+            color: #9933cc;
+        }
+
     </style>
 </head>
 <body>
 <!-- ---------------- 输入框 -->
-<div class="mdc-text-field mdc-text-field--textarea">
-    <textarea id="txtEditor" class="mdc-text-field__input" rows="8" cols="60"></textarea>
-    <div class="mdc-notched-outline">
-        <div class="mdc-notched-outline__leading"></div>
-        <div class="mdc-notched-outline__notch">
-            <label for="txtEditor" class="mdc-floating-label">Content</label>
-        </div>
-        <div class="mdc-notched-outline__trailing"></div>
-    </div>
-</div>
-<!-- ---------------- 选择区 -->
-<div class="mdc-form-field">
-    <div class="mdc-radio">
-        <input class="mdc-radio__native-control" type="radio" id="radio-1" name="radios" checked>
-        <div class="mdc-radio__background">
-            <div class="mdc-radio__outer-circle"></div>
-            <div class="mdc-radio__inner-circle"></div>
+<div class="mdc-card" style="padding: 16px; margin-bottom: 16px">
+    <div class="mdc-text-field mdc-text-field--textarea">
+        <textarea id="txtEditor" class="mdc-text-field__input" rows="8" cols="60"></textarea>
+        <div class="mdc-notched-outline">
+            <div class="mdc-notched-outline__leading"></div>
+            <div class="mdc-notched-outline__notch">
+                <label for="txtEditor" class="mdc-floating-label">Content</label>
+            </div>
+            <div class="mdc-notched-outline__trailing"></div>
         </div>
     </div>
-    <label for="radio-1">追加</label>
-    <div class="mdc-radio">
-        <input class="mdc-radio__native-control" type="radio" id="radio-2" name="radios">
-        <div class="mdc-radio__background">
-            <div class="mdc-radio__outer-circle"></div>
-            <div class="mdc-radio__inner-circle"></div>
+    <!-- ---------------- 选择区 -->
+    <div class="mdc-form-field">
+        <div class="mdc-radio">
+            <input class="mdc-radio__native-control radio_size" type="radio" id="radio-a" name="radios" checked>
+            <div class="mdc-radio__background">
+                <div class="mdc-radio__outer-circle"></div>
+                <div class="mdc-radio__inner-circle"></div>
+            </div>
+        </div>
+        <label for="radio-a" class="radio_size">内容追加</label>
+        <div class="mdc-radio">
+            <input class="mdc-radio__native-control radio_size" type="radio" id="radio-r" name="radios">
+            <div class="mdc-radio__background">
+                <div class="mdc-radio__outer-circle"></div>
+                <div class="mdc-radio__inner-circle"></div>
+            </div>
+        </div>
+        <label for="radio-r" class="radio_size">内容替换</label>
+    </div>
+    <!-- ---------------- 提交按钮 -->
+    <div class="mdc-layout-grid">
+        <div class="mdc-layout-grid__inner">
+            <div class="mdc-layout-grid__cell mdc-layout-grid__cell--span-12">
+                <button id="btn" type="button" class="mdc-button nain_button">
+                    <span class="mdc-button__label">Push into Nian</span>
+                </button>
+            </div>
         </div>
     </div>
-    <label for="radio-2">替换</label>
-</div>
-<!-- ---------------- 提交按钮 -->
-<div>
-    <button id="btn" type="button" class="mdc-button nain_button">
-        <span class="mdc-button__label">Push into Nian</span>
-    </button>
-</div>
-<!-- ---------------- 连接配置 -->
-<div class="mdc-text-field">
-    <input id="host_ip" type="text" class="mdc-text-field__input">
-    <label class="mdc-floating-label" for="host_ip">主机ip</label>
-    <div class="mdc-line-ripple"></div>
-</div>
-<div class="mdc-text-field">
-    <input id="host_port" type="text" class="mdc-text-field__input" placeholder="20202">
-    <label class="mdc-floating-label" for="host_port">主机端口</label>
-    <div class="mdc-line-ripple"></div>
-</div>
-<!-- ---------------- 连接按钮 -->
-<div>
-    <button id="connect" type="button" class="mdc-button nain_button">
-        <span class="mdc-button__label">connect to Nian</span>
-    </button>
 </div>
 <!-- ---------------- 状态信息-->
-<div class="mdc-card" style="padding: 8px">
-    <p id="remote_host" class="ip_port">远端主机</p>
+<div class="mdc-card" style="padding: 16px">
+    <!-- ---------------- 连接按钮 -->
+    <div class="mdc-layout-grid">
+        <div class="mdc-layout-grid__inner">
+            <div class="mdc-layout-grid__cell">
+                <button id="connect" type="button" class="mdc-button nain_button">
+                    <span class="mdc-button__label">connect to Nian</span>
+                </button>
+            </div>
+            <div class="mdc-layout-grid__cell">
+                <button id="closeConnect" type="button" class="mdc-button nain_button">
+                    <span class="mdc-button__label">Close Connect</span>
+                </button>
+            </div>
+        </div>
+    </div>
+    <!-- ---------------- 连接配置 -->
+    <div class="mdc-text-field mdc-text-field--no-label">
+        <input id="host_ip" type="text" class="mdc-text-field__input field_text_size" placeholder="主机地址"
+               aria-label="Label">
+        <div class="mdc-line-ripple"></div>
+    </div>
+    <div class="mdc-text-field mdc-text-field--no-label">
+        <input id="host_port" type="text" class="mdc-text-field__input field_text_size" placeholder="端口"
+               aria-label="Label">
+        <div class="mdc-line-ripple"></div>
+    </div>
+    <!-- ---------------- 连接状态 -->
+    <p id="remote_host" class="ip_port" style="margin-top: 16px">远端主机</p>
     <p id="local_client" class="ip_port">本机地址</p>
     <p id="connect_state" class="ip_port">连接状态</p>
 </div>
@@ -98,6 +127,9 @@
   };
   document.getElementById('connect').onclick = () => {
     ipcRenderer.send('asynchronous-msg', 'connect');
+  };
+  document.getElementById('closeConnect').onclick = () => {
+    ipcRenderer.send('asynchronous-msg', 'disconnect');
   };
 </script>
 </html>

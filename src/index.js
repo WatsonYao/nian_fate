@@ -7,11 +7,14 @@ import {
   ACTION_INFO,
   MODULE_STEP,
   ACTION_APPEND,
+  ACTION_REPLACE,
+  REPLY_DISCONNECT,
+  VERSION,
 } from './const';
 
+const storage = require('electron-localstorage');
 const WebSocket = require('ws');
 
-const DEFAULT_PORT = 20202;
 let ws;
 
 const txtEditor = document.getElementById('txtEditor');
@@ -20,34 +23,62 @@ const localClient = document.getElementById('local_client');
 const connectState = document.getElementById('connect_state');
 const hostIP = document.getElementById('host_ip');
 const hostPort = document.getElementById('host_port');
+const radioA = document.getElementById('radio-a');
+const radioR = document.getElementById('radio-r');
 
 const MAC_TAG = 'darwin';
 const CONNECT_OK = 1;
 const PLATFORM_PC = 'web-win';
 const PLATFORM_MAC = 'web-mac';
 
-console.log(`port ${DEFAULT_PORT}`);
-// 新建一个WebSocket通信，连接一个端口号为3000的本地服务器
-connectState.innerText = '连接中 ...';
+connectState.innerText = '等待连接';
+
+// 获得存储的值
+var localIP = storage.getItem('ip');
+var localPort = storage.getItem('port');
+
+if (localIP == '' || localIP == undefined) {
+  localIP = '192.168.32.1';
+}
+if (localPort == '' || localPort == undefined) {
+  localPort = '20202';
+}
+hostIP.value = localIP;
+hostPort.value = localPort;
+
+function saveLocal(ipValue, portValue) {
+  storage.setItem('ip', ipValue);
+  storage.setItem('port', portValue);
+}
 
 function getDeviceInfo() {
   let hard = PLATFORM_PC;
   if (process.platform == MAC_TAG) {
     hard = PLATFORM_MAC;
   }
-  return {
+  return JSON.stringify({
     ip: ws._socket.localAddress,
     port: ws._socket.localPort,
     model: hard,
-  };
+  });
 }
 
+// 连接状态
+var connected = false;
+
 function startListener() {
+  connectState.innerText = '连接中 ...';
   console.log('reply connect');
   const hostIPValue = hostIP.value;
   const hostPortValue = hostPort.value;
   console.log(`hostIP ${hostIPValue}`);
   console.log(`hostPort ${hostPortValue}`);
+  if (hostIPValue == '' || hostIPValue == undefined
+    || hostPortValue == '' || hostPortValue == undefined) {
+    connectState.innerText = '请完整填写主机地址和端口号 ...';
+    return;
+  }
+  saveLocal(hostIPValue, hostPortValue);
   ws = new WebSocket(`ws://${hostIPValue}:${hostPortValue}/ws`);
   ws.onopen = function (e) {
 // 连接建立时触发函数
@@ -57,11 +88,12 @@ function startListener() {
 
     if (ws.readyState == CONNECT_OK) {
       // 发送一个消息，表示设备情况
-      // todo 需要添加设备信息
+      connected = true;
       const device = {
         content: getDeviceInfo(),
         module: MODULE_SYS,
         action: ACTION_INFO,
+        v: VERSION,
       };
       connectState.innerText = '连接成功';
       ws.send(JSON.stringify(device));
@@ -74,6 +106,7 @@ function startListener() {
   };
   ws.onclose = (event) => {
     // 连接关闭时触发
+    connected = false;
     console.log(`onclose! ${event}`);
   };
   ws.onerror = (event) => {
@@ -83,11 +116,26 @@ function startListener() {
   };
 }
 
+function closeListener() {
+  ws.close();
+  connectState.innerText = '连接已关闭';
+}
+
 function pushInto() {
+  console.log(`connectState ${connectState}`);
+  if (connected == false) {
+    txtEditor.innerText = '\nHi \n先填写下面的主机地址和端口（参照手机上的 nian 提示），\n然后点击[CONNECT TO NIAN]，等下方显示连接成功后，即可使用';
+    return;
+  }
+  let stepAction = ACTION_APPEND;
+  if (radioR.checked) {
+    stepAction = ACTION_REPLACE;
+  }
   const step = {
     content: txtEditor.value,
     module: MODULE_STEP,
-    action: ACTION_APPEND,
+    action: stepAction,
+    v: VERSION,
   };
   console.log(`read step ${step}`);
   ws.send(JSON.stringify(step));
@@ -101,6 +149,9 @@ ipcRenderer.on(ASYNCHRONOUS_MSG_REPLY, (event, arg) => {
       break;
     case REPLY_CONNECT:
       startListener();
+      break;
+    case REPLY_DISCONNECT:
+      closeListener();
       break;
     default:
   }
