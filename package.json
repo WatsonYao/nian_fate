@@ -49,8 +49,8 @@
   },
   "dependencies": {
     "electron-compile": "^6.4.4",
-    "electron-localstorage": "^1.0.5",
     "electron-squirrel-startup": "^1.0.0",
+    "electron-store": "^5.0.0",
     "ws": "^7.1.2"
   },
   "devDependencies": {

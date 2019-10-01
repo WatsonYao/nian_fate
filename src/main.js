@@ -25,11 +25,15 @@ var appMenuTemplate = [
   },
 ];
 
-const storage = require('electron-localstorage');
+//const storage = require('electron-localstorage');
+const Store = require('electron-store');
+const store = new Store();
 
 const createWindow = () => {
-  let sizeWidth = storage.getItem('width');
-  let sizeHeight = storage.getItem('height');
+  let sizeWidth = store.get('width');
+  let sizeHeight = store.get('height');
+  console.log(`sizeWidth ${sizeWidth}`);
+  console.log(`sizeHeight ${sizeHeight}`);
 
   if (sizeWidth == undefined) {
     sizeWidth = 800;
@@ -60,8 +64,8 @@ const createWindow = () => {
   Menu.setApplicationMenu(menu);
   mainWindow.on('close', () => {
     const size = mainWindow.getSize();
-    storage.setItem('width', size[0]);
-    storage.setItem('height', size[1]);
+    store.set('width', size[0]);
+    store.set('height', size[1]);
     console.log(`close event ${mainWindow.getSize()}`);
   });
 
