@@ -36,7 +36,10 @@ connectState.innerText = '等待连接';
 // 获得存储的值
 var localIP = storage.getItem('ip');
 var localPort = storage.getItem('port');
+var localRadio = storage.getItem('radio');
 
+console.log(`localIP ${localIP}`);
+console.log(`localPort ${localPort}`);
 if (localIP == '' || localIP == undefined) {
   localIP = '192.168.32.1';
 }
@@ -45,10 +48,27 @@ if (localPort == '' || localPort == undefined) {
 }
 hostIP.value = localIP;
 hostPort.value = localPort;
+console.log(`localRadio ${localRadio}`);
+if (localRadio == 'replace') {
+  radioA.checked = false;
+  radioR.checked = true;
+}
+
 
 function saveLocal(ipValue, portValue) {
   storage.setItem('ip', ipValue);
   storage.setItem('port', portValue);
+}
+
+function saveLocalRadio() {
+  if (radioA.checked) {
+    console.log('set radio append');
+    storage.setItem('radio', 'append');
+  }
+  if (radioR.checked) {
+    console.log('set radio replace');
+    storage.setItem('radio', 'replace');
+  }
 }
 
 function getDeviceInfo() {
@@ -69,10 +89,12 @@ var connected = false;
 function startListener() {
   connectState.innerText = '连接中 ...';
   console.log('reply connect');
+
   const hostIPValue = hostIP.value;
   const hostPortValue = hostPort.value;
   console.log(`hostIP ${hostIPValue}`);
   console.log(`hostPort ${hostPortValue}`);
+
   if (hostIPValue == '' || hostIPValue == undefined
     || hostPortValue == '' || hostPortValue == undefined) {
     connectState.innerText = '请完整填写主机地址和端口号 ...';
@@ -137,6 +159,7 @@ function pushInto() {
     action: stepAction,
     v: VERSION,
   };
+  saveLocalRadio();
   console.log(`read step ${step}`);
   ws.send(JSON.stringify(step));
 }

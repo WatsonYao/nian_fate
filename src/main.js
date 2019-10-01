@@ -44,6 +44,9 @@ const createWindow = () => {
     height: sizeHeight,
     minWidth: 640,
     minHeight: 640,
+    webPreferences: {
+      nodeIntegration: true  // 注入node模块
+    }
   });
 
   // and load the index.html of the app.
@@ -89,6 +92,7 @@ app.on('activate', () => {
     createWindow();
   }
 });
+process.env['ELECTRON_DISABLE_SECURITY_WARNINGS'] = 'true';
 
 // 监听与渲染进程的通信
 ipcMain.on('reqaction', (event, arg) => {

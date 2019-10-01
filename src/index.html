@@ -8,6 +8,12 @@
 
 
     <style type="text/css">
+
+        :root {
+            --mdc-theme-primary: #6CC5EE;
+            --mdc-theme-secondary: #6CC5EE;
+        }
+
         body, html {
             margin: 16px;
             height: 100%;
@@ -30,8 +36,17 @@
             margin: 8px 0px 8px 0px;
         }
 
-        .mdc-theme--primary {
-            color: #9933cc;
+        .button-container {
+            display: flex;
+            justify-content: center;
+            margin: auto;
+        }
+
+        /*
+        https://github.com/material-components/material-components-web/issues/2718
+        */
+        .mdc-text-field--focused:not(.mdc-text-field--disabled) .mdc-floating-label {
+            color: var(--mdc-theme-primary);
         }
 
     </style>
@@ -69,32 +84,24 @@
         <label for="radio-r" class="radio_size">内容替换</label>
     </div>
     <!-- ---------------- 提交按钮 -->
-    <div class="mdc-layout-grid">
-        <div class="mdc-layout-grid__inner">
-            <div class="mdc-layout-grid__cell mdc-layout-grid__cell--span-12">
-                <button id="btn" type="button" class="mdc-button nain_button">
-                    <span class="mdc-button__label">Push into Nian</span>
-                </button>
-            </div>
-        </div>
+    <div class="button-container">
+        <button id="btn" type="button" class="mdc-button nain_button">
+            <span class="mdc-button__label theme-color">Push into Nian</span>
+        </button>
     </div>
 </div>
 <!-- ---------------- 状态信息-->
 <div class="mdc-card" style="padding: 16px">
     <!-- ---------------- 连接按钮 -->
-    <div class="mdc-layout-grid">
-        <div class="mdc-layout-grid__inner">
-            <div class="mdc-layout-grid__cell">
-                <button id="connect" type="button" class="mdc-button nain_button">
-                    <span class="mdc-button__label">connect to Nian</span>
-                </button>
-            </div>
-            <div class="mdc-layout-grid__cell">
-                <button id="closeConnect" type="button" class="mdc-button nain_button">
-                    <span class="mdc-button__label">Close Connect</span>
-                </button>
-            </div>
-        </div>
+    <div class="button-container">
+        <button id="connect" type="button" class="mdc-button nain_button">
+            <span class="mdc-button__label">connect to Nian</span>
+        </button>
+    </div>
+    <div class="button-container">
+        <button id="closeConnect" type="button" class="mdc-button nain_button">
+            <span class="mdc-button__label">Close Connect</span>
+        </button>
     </div>
     <!-- ---------------- 连接配置 -->
     <div class="mdc-text-field mdc-text-field--no-label">
