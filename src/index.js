@@ -3,6 +3,8 @@ import {
   ASYNCHRONOUS_MSG_REPLY,
   REPLY_PUSH,
   REPLY_CONNECT,
+  REPLY_PASTE,
+  REPLAY_PUSH_IMG,
   MODULE_SYS,
   ACTION_INFO,
   MODULE_STEP,
@@ -15,6 +17,7 @@ import {
 const WebSocket = require('ws');
 const Store = require('electron-store');
 const store = new Store();
+const clipboard = require('electron').clipboard;
 
 let ws;
 
@@ -26,6 +29,7 @@ const hostIP = document.getElementById('host_ip');
 const hostPort = document.getElementById('host_port');
 const radioA = document.getElementById('radio-a');
 const radioR = document.getElementById('radio-r');
+const imageView = document.getElementById('paste_image');
 
 const MAC_TAG = 'darwin';
 const CONNECT_OK = 1;
@@ -38,10 +42,6 @@ connectState.innerText = '等待连接';
 var localIP = store.get('ip');
 var localPort = store.get('port');
 var localRadio = store.get('radio');
-
-// storage.setItem('port','20203');
-//var test = storage.getItem('test');
-// console.log(`test ${test}`)
 
 console.log(`localIP ${localIP}`);
 console.log(`localPort ${localPort}`);
@@ -72,6 +72,34 @@ function getDeviceInfo() {
   });
 }
 
+// 粘贴图片相关
+let imageWidth = 0;
+let imageHeight = 0;
+
+function pasteClipToContent() {
+  console.log('paste');
+  const image = clipboard.readImage();
+  if (image) {
+    let size = image.getSize();
+    imageWidth = size.width;
+    imageHeight = size.height;
+    console.info('imageWidth', imageWidth);
+    console.info('imageHeight', imageHeight);
+    console.info('image', image);
+    imageView.style.display = '';
+    imageView.src = image.toDataURL();
+  } else {
+    console.error('不是图片');
+  }
+}
+
+function pushImage() {
+  const image = clipboard.readImage();
+  const data = image.toDataURL();
+  ws.send(data, { binary: true });
+}
+
+// 信令连接相关
 // 连接状态
 var connected = false;
 
@@ -121,7 +149,9 @@ function startListener() {
   ws.onclose = (event) => {
     // 连接关闭时触发
     connected = false;
-    console.log(`onclose! ${event}`);
+    console.log('onclose!', event);
+    remoteHost.innerText = '远端主机';
+    connectState.innerText = `连接已关闭`;
   };
   ws.onerror = (event) => {
     // 出错信息打印
@@ -175,6 +205,11 @@ ipcRenderer.on(ASYNCHRONOUS_MSG_REPLY, (event, arg) => {
     case REPLY_DISCONNECT:
       closeListener();
       break;
+    case REPLY_PASTE:
+      pasteClipToContent();
+      break;
+    case REPLAY_PUSH_IMG:
+      pushImage();
     default:
   }
 });

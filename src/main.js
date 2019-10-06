@@ -1,6 +1,7 @@
-import { app, BrowserWindow, shell } from 'electron';
-import { Menu, MenuItem, ipcMain } from 'electron';
+import { app, BrowserWindow, shell, Menu, MenuItem, ipcMain } from 'electron';
 import { ASYNCHRONOUS_MSG, ASYNCHRONOUS_MSG_REPLY } from './const';
+
+const Store = require('electron-store');
 // 是否可以安全退出
 // let safeExit = false;
 
@@ -19,14 +20,13 @@ var appMenuTemplate = [
         },
       },
       {
-        label: '版本 0.1',
+        label: 'version:0.1',
       },
     ],
   },
 ];
 
-//const storage = require('electron-localstorage');
-const Store = require('electron-store');
+
 const store = new Store();
 
 const createWindow = () => {
@@ -49,8 +49,8 @@ const createWindow = () => {
     minWidth: 640,
     minHeight: 640,
     webPreferences: {
-      nodeIntegration: true  // 注入node模块
-    }
+      nodeIntegration: true,  // 注入node模块
+    },
   });
 
   // and load the index.html of the app.

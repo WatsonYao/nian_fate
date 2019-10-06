@@ -36,7 +36,7 @@
             margin: 8px 0px 8px 0px;
         }
 
-        .button-container {
+        .center-container {
             display: flex;
             justify-content: center;
             margin: auto;
@@ -83,23 +83,39 @@
         </div>
         <label for="radio-r" class="radio_size">内容替换</label>
     </div>
-    <!-- ---------------- 提交按钮 -->
-    <div class="button-container">
-        <button id="btn" type="button" class="mdc-button nain_button">
-            <span class="mdc-button__label theme-color">Push into Nian</span>
+
+    <div class="center-container">
+        <!-- ---------------- 提交按钮 -->
+        <button id="push" type="button" class="mdc-button nain_button">
+            <span class="mdc-button__label theme-color">Push Content</span>
         </button>
     </div>
+
 </div>
-<!-- ---------------- 状态信息-->
+<!-- ---------------- 图片相关-->
+<div class="mdc-card" style="padding: 16px; margin-bottom: 16px">
+    <div class="center-container">
+        <!-- ---------------- 粘贴复制来的图片 -->
+        <button id="paste" type="button" class="mdc-button nain_button" style="margin-left: 16px">
+            <span class="mdc-button__label theme-color">Paste Image</span>
+        </button>
+        <!-- ---------------- 发送图片 -->
+        <button id="push_img" type="button" class="mdc-button nain_button" style="margin-left: 16px">
+            <span class="mdc-button__label theme-color">Push Image</span>
+        </button>
+    </div>
+    <img id="paste_image" width="200" style="display:none"/>
+</div>
+
+<!-- ---------------- 状态信息 -->
 <div class="mdc-card" style="padding: 16px">
-    <!-- ---------------- 连接按钮 -->
-    <div class="button-container">
+    <div class="center-container">
+        <!-- ---------------- 连接按钮 -->
         <button id="connect" type="button" class="mdc-button nain_button">
             <span class="mdc-button__label">connect to Nian</span>
         </button>
-    </div>
-    <div class="button-container">
-        <button id="closeConnect" type="button" class="mdc-button nain_button">
+        <!-- ---------------- 断开连接 -->
+        <button id="closeConnect" type="button" class="mdc-button nain_button" style="margin-left: 16px">
             <span class="mdc-button__label">Close Connect</span>
         </button>
     </div>
@@ -129,8 +145,14 @@
 <script>
   require('./index.js');
   const { ipcRenderer } = require('electron');
-  document.getElementById('btn').onclick = () => {
+  document.getElementById('push').onclick = () => {
     ipcRenderer.send('asynchronous-msg', 'push');
+  };
+  document.getElementById('paste').onclick = () => {
+    ipcRenderer.send('asynchronous-msg', 'paste');
+  };
+  document.getElementById('push_img').onclick = () => {
+    ipcRenderer.send('asynchronous-msg', 'push_img');
   };
   document.getElementById('connect').onclick = () => {
     ipcRenderer.send('asynchronous-msg', 'connect');

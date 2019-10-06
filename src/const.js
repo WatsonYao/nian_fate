@@ -5,6 +5,8 @@ module.exports = {
   REPLY_PUSH: 'push',
   REPLY_CONNECT: 'connect',
   REPLY_DISCONNECT: 'disconnect',
+  REPLY_PASTE: 'paste',
+  REPLAY_PUSH_IMG: 'push_img',
   MODULE_SYS: 'sys',
   ACTION_INFO: 'info',
   MODULE_STEP: 'step',
