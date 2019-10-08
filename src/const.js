@@ -12,4 +12,5 @@ module.exports = {
   MODULE_STEP: 'step',
   ACTION_APPEND: 'append',
   ACTION_REPLACE: 'replace',
+  MODULE_DREAM_LIST: 'dream_list',
 };

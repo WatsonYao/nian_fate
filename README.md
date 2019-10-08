@@ -3,6 +3,7 @@
 module | action | content | desc
 ------------ | ------------- | ------------ | ------------
 sys | info  | e.g "pc-web" | 设备信息
+dream_list | info  | "" | 所有记本
 step | replace  | "replace content" | 进展内容完全替换 
 step | append  | "append content" | 进展内容追加
 img | info  | image array | 图片

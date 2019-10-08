@@ -12,6 +12,7 @@ import {
   ACTION_REPLACE,
   REPLY_DISCONNECT,
   VERSION,
+  MODULE_DREAM_LIST,
 } from './const';
 
 const WebSocket = require('ws');
@@ -30,6 +31,7 @@ const hostPort = document.getElementById('host_port');
 const radioA = document.getElementById('radio-a');
 const radioR = document.getElementById('radio-r');
 const imageView = document.getElementById('paste_image');
+const dreamList = document.getElementById('dream_list');
 
 const MAC_TAG = 'darwin';
 const CONNECT_OK = 1;
@@ -99,9 +101,49 @@ function pushImage() {
   ws.send(data, { binary: true });
 }
 
+function showDreams(dreams) {
+  // console.log('dreams', dreams);
+  for (let i = 0; i < dreams.length; i++) {
+    let li = document.createElement('li');
+    let item = dreams[i];
+    li.innerHTML = item.name;
+    console.log('dreams item', item);
+    dreamList.appendChild(li);
+  }
+}
+
 // 信令连接相关
 // 连接状态
 var connected = false;
+
+function onopen(e) {
+
+// 连接建立时触发函数
+  console.log(`onopen readyState=${ws.readyState} e=${e}`);
+  remoteHost.innerText = `已连接到远端主机:${ws._socket.remoteAddress}:${ws._socket.remotePort}`;
+  localClient.innerText = `本机地址:${ws._socket.localAddress}:${ws._socket.localPort}`;
+  if (ws.readyState == CONNECT_OK) {
+    // 发送一个消息，表示设备情况
+    connected = true;
+    const device = {
+      content: getDeviceInfo(),
+      module: MODULE_SYS,
+      action: ACTION_INFO,
+      v: VERSION,
+    };
+    connectState.innerText = '连接成功';
+    ws.send(JSON.stringify(device));
+    // 发送一个消息，获得记本列表
+    const getDream = {
+      content: '', // 空表示获得所有记本信息
+      module: MODULE_DREAM_LIST,
+      action: ACTION_INFO,
+      v: VERSION,
+    };
+    ws.send(JSON.stringify(getDream));
+  }
+// 只读属性readyState表示连接状态
+}
 
 function startListener() {
   connectState.innerText = '连接中 ...';
@@ -122,30 +164,19 @@ function startListener() {
   store.set('port', hostPortValue);
 
   ws = new WebSocket(`ws://${hostIPValue}:${hostPortValue}/ws`);
-  ws.onopen = function (e) {
-// 连接建立时触发函数
-    console.log(`onopen readyState=${ws.readyState} e=${e}`);
-    remoteHost.innerText = `已连接到远端主机:${ws._socket.remoteAddress}:${ws._socket.remotePort}`;
-    localClient.innerText = `本机地址:${ws._socket.localAddress}:${ws._socket.localPort}`;
+  ws.onopen = onopen;
 
-    if (ws.readyState == CONNECT_OK) {
-      // 发送一个消息，表示设备情况
-      connected = true;
-      const device = {
-        content: getDeviceInfo(),
-        module: MODULE_SYS,
-        action: ACTION_INFO,
-        v: VERSION,
-      };
-      connectState.innerText = '连接成功';
-      ws.send(JSON.stringify(device));
-    }
-// 只读属性readyState表示连接状态
-  };
   ws.onmessage = (event) => {
-    console.log(`onmessage event=${event}`);
 // 客户端接收服务端数据时触发
+    let item = JSON.parse(event.data);
+    if (item.module = MODULE_DREAM_LIST) {
+      console.log('onmessage 显示记本');
+      showDreams(item.content);
+    } else {
+      console.log('onmessage event', event.data);
+    }
   };
+
   ws.onclose = (event) => {
     // 连接关闭时触发
     connected = false;
@@ -153,6 +184,7 @@ function startListener() {
     remoteHost.innerText = '远端主机';
     connectState.innerText = `连接已关闭`;
   };
+
   ws.onerror = (event) => {
     // 出错信息打印
     console.log(`onError ${event}`);
