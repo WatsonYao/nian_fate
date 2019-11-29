@@ -13,6 +13,7 @@ import {
   REPLY_DISCONNECT,
   VERSION,
   MODULE_DREAM_LIST,
+  MODULE_DREAM_DETAIL,
 } from './const';
 
 const WebSocket = require('ws');
@@ -32,6 +33,7 @@ const radioA = document.getElementById('radio-a');
 const radioR = document.getElementById('radio-r');
 const imageView = document.getElementById('paste_image');
 const dreamList = document.getElementById('dream_list');
+const dreamDetail = document.getElementById('dream_detail');
 
 const MAC_TAG = 'darwin';
 const CONNECT_OK = 1;
@@ -104,12 +106,66 @@ function pushImage() {
 function showDreams(dreams) {
   // console.log('dreams', dreams);
   for (let i = 0; i < dreams.length; i++) {
-    let li = document.createElement('li');
+    let li = document.createElement('div');
     let item = dreams[i];
-    li.innerHTML = item.name;
+    //li.innerHTML = item.name;
+    let button = document.createElement('button');
+    button.className = 'mdc-button';
+    button.id = item.id;
+    let text = document.createElement('p');
+    text.innerHTML = item.name;
+    text.className = 'mdc-button__label';
+    button.appendChild(text);
+    button.onclick = function () {
+      getDreamDetail(button.id);
+    };
+    li.appendChild(button);
     console.log('dreams item', item);
     dreamList.appendChild(li);
   }
+}
+
+function clearInnerTextOfDreamAndStep() {
+  dreamList.innerText = '';
+  dreamDetail.innerText = '';
+}
+
+function showStepList(steps) {
+  console.log('steps', steps);
+  // 删除之前的
+  dreamDetail.innerText = '';
+  for (let i = 0; i < steps.length; i++) {
+    let li = document.createElement('div');
+    let item = steps[i];
+    //li.innerHTML = item.name;
+    // let button = document.createElement('button');
+    // button.className = 'mdc-button';
+    // button.id = item.id;
+    let text = document.createElement('p');
+    text.innerHTML = item.content;
+    text.className = 'mdc-button__label';
+    text.onclick = function () {
+      clickStepDetail(item.content);
+    };
+    li.appendChild(text);
+    console.log('step item', item);
+    dreamDetail.appendChild(li);
+  }
+}
+
+function clickStepDetail(content) {
+  console.log('clickStepDetail', content);
+}
+
+function getDreamDetail(dreamId) {
+  console.log('getDreamDetail.id', dreamId);
+  const getDreamDetail = {
+    content: dreamId.toString(), // 空表示获得所有记本信息
+    module: MODULE_DREAM_DETAIL,
+    action: ACTION_INFO,
+    v: VERSION,
+  };
+  ws.send(JSON.stringify(getDreamDetail));
 }
 
 // 信令连接相关
@@ -132,6 +188,7 @@ function onopen(e) {
       v: VERSION,
     };
     connectState.innerText = '连接成功';
+    clearInnerTextOfDreamAndStep();
     ws.send(JSON.stringify(device));
     // 发送一个消息，获得记本列表
     const getDream = {
@@ -169,9 +226,13 @@ function startListener() {
   ws.onmessage = (event) => {
 // 客户端接收服务端数据时触发
     let item = JSON.parse(event.data);
-    if (item.module = MODULE_DREAM_LIST) {
-      console.log('onmessage 显示记本');
+    console.log('onmessage item.module', item.module);
+    if (item.module == MODULE_DREAM_LIST) {
+      console.log('onmessage show dream list');
       showDreams(item.content);
+    } else if (item.module == MODULE_DREAM_DETAIL) {
+      console.log('onmessage show dream detail');
+      showStepList(item.content);
     } else {
       console.log('onmessage event', event.data);
     }
