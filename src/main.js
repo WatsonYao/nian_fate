@@ -46,7 +46,7 @@ const createWindow = () => {
   mainWindow = new BrowserWindow({
     width: sizeWidth,
     height: sizeHeight,
-    minWidth: 640,
+    minWidth: 1280,
     minHeight: 640,
     webPreferences: {
       nodeIntegration: true,  // 注入node模块

@@ -3,181 +3,111 @@
 <head>
     <meta charset="utf-8">
     <title>Nian</title>
-    <!-- Required styles for MDC Web -->
-    <link rel="stylesheet" href="./css/material-components-web.min.css">
-
+    <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
+    <!-- Insert this line above script imports  -->
+    <script>if (typeof module === 'object') {
+      window.module = module;
+      module = undefined;
+    }</script>
+    <!-- normal script imports etc  -->
+    <script src="js/jquery-3.1.1.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <!-- Insert this line after script imports -->
+    <script>if (window.module) module = window.module;</script>
 
     <style type="text/css">
 
-        :root {
-            --mdc-theme-primary: #6CC5EE;
-            --mdc-theme-secondary: #6CC5EE;
-        }
-
         body, html {
-            margin: 16px;
             height: 100%;
-            background: #eeeeee;
+            background: #fefefe;
         }
 
-        .ip_port {
-            font-size: 12px;
+        .bottomBar {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            display: block;
+            background: #f1f1f1;
+            /*字体居中*/
         }
 
-        .field_text_size {
-            font-size: 12px;
-        }
-
-        .radio_size {
-            font-size: 12px;
-        }
-
-        .nain_button {
-            margin: 8px 0px 8px 0px;
-        }
-
-        .center-container {
+        .wrap {
             display: flex;
-            justify-content: center;
-            margin: auto;
         }
 
-        /*
-        https://github.com/material-components/material-components-web/issues/2718
-        */
-        .mdc-text-field--focused:not(.mdc-text-field--disabled) .mdc-floating-label {
-            color: var(--mdc-theme-primary);
+        .textWrap {
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 3;
+            overflow: hidden;
         }
 
     </style>
 </head>
 <body>
-<!-- ---------------- 输入框 -->
-<div class="mdc-layout-grid">
-    <div class="mdc-layout-grid__inner">
-        <div class="mdc-layout-grid__cell">
-            <p>dream list</p>
-            <div id="dream_list">
+<div class="container" style="height: 100%">
+    <div class="row" style="height: 80%">
+        <div class="col-2" style="height: 100%">
+            <div>
+                <p>dream list</p>
+                <ul id="dream_list" class="list-group">
+                </ul>
             </div>
         </div>
-        <div class="mdc-layout-grid__cell">
-            <p>step list</p>
-            <div id="dream_detail">
+        <div class="col-4" style="height: 100%">
+            <div>
+                <p>step list</p>
+                <ul id="dream_detail" class="list-group">
+                </ul>
             </div>
         </div>
-        <div class="mdc-layout-grid__cell">
-            <div class="mdc-card" style="padding: 16px; margin-bottom: 16px">
-                <div class="mdc-text-field mdc-text-field--textarea">
-                    <textarea id="txtEditor" class="mdc-text-field__input" rows="8" cols="60"></textarea>
-                    <div class="mdc-notched-outline">
-                        <div class="mdc-notched-outline__leading"></div>
-                        <div class="mdc-notched-outline__notch">
-                            <label for="txtEditor" class="mdc-floating-label">Content</label>
-                        </div>
-                        <div class="mdc-notched-outline__trailing"></div>
-                    </div>
-                </div>
-                <!-- ---------------- 选择区 -->
-                <div class="mdc-form-field">
-                    <div class="mdc-radio">
-                        <input class="mdc-radio__native-control radio_size" type="radio" id="radio-a" name="radios"
-                               checked>
-                        <div class="mdc-radio__background">
-                            <div class="mdc-radio__outer-circle"></div>
-                            <div class="mdc-radio__inner-circle"></div>
-                        </div>
-                    </div>
-                    <label for="radio-a" class="radio_size">内容追加</label>
-                    <div class="mdc-radio">
-                        <input class="mdc-radio__native-control radio_size" type="radio" id="radio-r" name="radios">
-                        <div class="mdc-radio__background">
-                            <div class="mdc-radio__outer-circle"></div>
-                            <div class="mdc-radio__inner-circle"></div>
-                        </div>
-                    </div>
-                    <label for="radio-r" class="radio_size">内容替换</label>
-                </div>
-
-                <div class="center-container">
-                    <!-- ---------------- 提交按钮 -->
-                    <button id="push" type="button" class="mdc-button nain_button">
-                        <span class="mdc-button__label theme-color">Push Content</span>
-                    </button>
-                </div>
-
+        <div class="col-6" style="height: 100%">
+            <div style="height: 100%">
+                <button id="push" type="button" class="btn btn-secondary">
+                    <span>update</span>
+                </button>
+                <button id="newContent" type="button" class="btn btn-secondary">
+                    <span>new</span>
+                </button>
+                <p id="message"></p>
+                <div id="updateEditor" class="card"
+                     contenteditable="true"
+                     style="height: 100%;min-height: 300px;padding: 1rem"></div>
             </div>
-            <!-- ---------------- 图片相关-->
-            <div class="mdc-card" style="padding: 16px; margin-bottom: 16px">
-                <div class="center-container">
-                    <!-- ---------------- 粘贴复制来的图片 -->
-                    <button id="paste" type="button" class="mdc-button nain_button" style="margin-left: 16px">
-                        <span class="mdc-button__label theme-color">Paste Image</span>
-                    </button>
-                    <!-- ---------------- 发送图片 -->
-                    <button id="push_img" type="button" class="mdc-button nain_button" style="margin-left: 16px">
-                        <span class="mdc-button__label theme-color">Push Image</span>
-                    </button>
-                </div>
-                <img id="paste_image" width="200" style="display:none"/>
+        </div>
+    </div>
+    <div class="row" style="height: 20%;">
+        <div class="row">
+            <!-- ---------------- 连接配置 -->
+            <input id="host_ip" type="text" placeholder="主机地址">
+            <input id="host_port" type="text" placeholder="端口">
+            <!-- ---------------- 连接信息 -->
+            <div>
+                <p id="remote_host">远端主机</p>
+                <p id="local_client">本机地址</p>
             </div>
 
+        </div>
+        <div class="row">
+            <!-- ---------------- 连接按钮 -->
+            <button id="connect" type="button" class="btn btn-primary">
+                <span>连接到 nian</span>
+            </button>
             <!-- ---------------- 状态信息 -->
-            <div class="mdc-card" style="padding: 16px">
-                <div class="center-container">
-                    <!-- ---------------- 连接按钮 -->
-                    <button id="connect" type="button" class="mdc-button nain_button">
-                        <span class="mdc-button__label">connect to Nian</span>
-                    </button>
-                    <!-- ---------------- 断开连接 -->
-                    <button id="closeConnect" type="button" class="mdc-button nain_button" style="margin-left: 16px">
-                        <span class="mdc-button__label">Close Connect</span>
-                    </button>
-                </div>
-                <!-- ---------------- 连接配置 -->
-                <div class="mdc-text-field mdc-text-field--no-label">
-                    <input id="host_ip" type="text" class="mdc-text-field__input field_text_size" placeholder="主机地址"
-                           aria-label="Label">
-                    <div class="mdc-line-ripple"></div>
-                </div>
-                <div class="mdc-text-field mdc-text-field--no-label">
-                    <input id="host_port" type="text" class="mdc-text-field__input field_text_size" placeholder="端口"
-                           aria-label="Label">
-                    <div class="mdc-line-ripple"></div>
-                </div>
-                <!-- ---------------- 连接状态 -->
-                <p id="remote_host" class="ip_port" style="margin-top: 16px">远端主机</p>
-                <p id="local_client" class="ip_port">本机地址</p>
-                <p id="connect_state" class="ip_port">连接状态</p>
-            </div>
+            <p id="connect_state">连接状态</p>
         </div>
     </div>
 </div>
 
 </body>
 <!-- Required MDC Web JavaScript library -->
-<script src="./js/material-components-web.min.js"></script>
 <!-- Instantiate single textfield component rendered in the document -->
-<script>
-  mdc.textField.MDCTextField.attachTo(document.querySelector('.mdc-text-field'));
-</script>
 <script>
   require('./index.js');
   const { ipcRenderer } = require('electron');
-  document.getElementById('push').onclick = () => {
-    ipcRenderer.send('asynchronous-msg', 'push');
-  };
-  document.getElementById('paste').onclick = () => {
-    ipcRenderer.send('asynchronous-msg', 'paste');
-  };
-  document.getElementById('push_img').onclick = () => {
-    ipcRenderer.send('asynchronous-msg', 'push_img');
-  };
-  document.getElementById('connect').onclick = () => {
-    ipcRenderer.send('asynchronous-msg', 'connect');
-  };
-  document.getElementById('closeConnect').onclick = () => {
-    ipcRenderer.send('asynchronous-msg', 'disconnect');
-  };
+  // document.getElementById('push').onclick = () => {
+  //   ipcRenderer.send('asynchronous-msg', 'push');
+  // };
 </script>
 </html>
 <!--

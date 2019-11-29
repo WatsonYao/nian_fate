@@ -1,19 +1,15 @@
 import { ipcRenderer, remote } from 'electron';
 import {
   ASYNCHRONOUS_MSG_REPLY,
-  REPLY_PUSH,
-  REPLY_CONNECT,
   REPLY_PASTE,
   REPLAY_PUSH_IMG,
   MODULE_SYS,
   ACTION_INFO,
-  MODULE_STEP,
-  ACTION_APPEND,
-  ACTION_REPLACE,
-  REPLY_DISCONNECT,
+  MODULE_STEP_UPDATE,
   VERSION,
   MODULE_DREAM_LIST,
   MODULE_DREAM_DETAIL,
+  MODULE_STEP_ADD,
 } from './const';
 
 const WebSocket = require('ws');
@@ -23,17 +19,42 @@ const clipboard = require('electron').clipboard;
 
 let ws;
 
-const txtEditor = document.getElementById('txtEditor');
+const updateEditor = document.getElementById('updateEditor');
 const remoteHost = document.getElementById('remote_host');
 const localClient = document.getElementById('local_client');
 const connectState = document.getElementById('connect_state');
 const hostIP = document.getElementById('host_ip');
 const hostPort = document.getElementById('host_port');
-const radioA = document.getElementById('radio-a');
-const radioR = document.getElementById('radio-r');
-const imageView = document.getElementById('paste_image');
 const dreamList = document.getElementById('dream_list');
 const dreamDetail = document.getElementById('dream_detail');
+const connectButton = document.getElementById('connect');
+const pushButton = document.getElementById('push');
+const newContent = document.getElementById('newContent');
+const messageView = document.getElementById('message');
+
+var connected = false;
+var currentStep = null;
+var currentDream = null;
+
+let noConnectMsg = '\nHi \n先填写下面的主机地址和端口（参照手机上的 nian 提示），\n然后点击[CONNECT TO NIAN]，等下方显示连接成功后，即可使用';
+
+connectButton.onclick = function () {
+  // 判断当前是否是连接状态，如果是连接，则是断开连接的操作
+  if (connected) {
+    connectButton.innerText = '连接到 nian';
+    closeListener();
+  } else {
+    startListener();
+  }
+};
+pushButton.onclick = function () {
+  pushUpdate();
+};
+newContent.onclick = function () {
+  // 新增一条，刷新左边的列表
+  pushAdd();
+  getDreamDetail(currentDream);
+};
 
 const MAC_TAG = 'darwin';
 const CONNECT_OK = 1;
@@ -45,11 +66,9 @@ connectState.innerText = '等待连接';
 // 获得存储的值
 var localIP = store.get('ip');
 var localPort = store.get('port');
-var localRadio = store.get('radio');
 
 console.log(`localIP ${localIP}`);
 console.log(`localPort ${localPort}`);
-console.log(`localRadio ${localRadio}`);
 
 if (localIP == '' || localIP == undefined) {
   localIP = '192.168.32.1';
@@ -59,10 +78,6 @@ if (localPort == '' || localPort == undefined) {
 }
 hostIP.value = localIP;
 hostPort.value = localPort;
-if (localRadio == 'replace') {
-  radioA.checked = false;
-  radioR.checked = true;
-}
 
 function getDeviceInfo() {
   let hard = PLATFORM_PC;
@@ -106,20 +121,13 @@ function pushImage() {
 function showDreams(dreams) {
   // console.log('dreams', dreams);
   for (let i = 0; i < dreams.length; i++) {
-    let li = document.createElement('div');
+    let li = document.createElement('li');
+    li.className = 'list-group-item';
     let item = dreams[i];
-    //li.innerHTML = item.name;
-    let button = document.createElement('button');
-    button.className = 'mdc-button';
-    button.id = item.id;
-    let text = document.createElement('p');
-    text.innerHTML = item.name;
-    text.className = 'mdc-button__label';
-    button.appendChild(text);
-    button.onclick = function () {
-      getDreamDetail(button.id);
+    li.innerHTML = item.name;
+    li.onclick = function () {
+      getDreamDetail(item);
     };
-    li.appendChild(button);
     console.log('dreams item', item);
     dreamList.appendChild(li);
   }
@@ -128,6 +136,10 @@ function showDreams(dreams) {
 function clearInnerTextOfDreamAndStep() {
   dreamList.innerText = '';
   dreamDetail.innerText = '';
+  updateEditor.innerText = '';
+  currentStep = null;
+  currentDream = null;
+  messageView.innerText = '';
 }
 
 function showStepList(steps) {
@@ -135,48 +147,103 @@ function showStepList(steps) {
   // 删除之前的
   dreamDetail.innerText = '';
   for (let i = 0; i < steps.length; i++) {
-    let li = document.createElement('div');
+    let li = document.createElement('li');
     let item = steps[i];
-    //li.innerHTML = item.name;
-    // let button = document.createElement('button');
-    // button.className = 'mdc-button';
-    // button.id = item.id;
-    let text = document.createElement('p');
-    text.innerHTML = item.content;
-    text.className = 'mdc-button__label';
-    text.onclick = function () {
-      clickStepDetail(item.content);
+    li.innerText = item.content;
+    li.className = 'textWrap nian_step list-group-item';
+    li.id = item.id;
+    li.onclick = function () {
+      clickStepDetail(item);
     };
-    li.appendChild(text);
     console.log('step item', item);
     dreamDetail.appendChild(li);
   }
 }
 
-function clickStepDetail(content) {
-  console.log('clickStepDetail', content);
+function clickStepDetail(item) {
+  console.log('clickStepDetail', item);
+  currentStep = item;
+  updateEditor.innerText = item.content;
 }
 
-function getDreamDetail(dreamId) {
-  console.log('getDreamDetail.id', dreamId);
+function pushUpdate() {
+  console.log(`connectState ${connectState}`);
+  if (connected == false) {
+    messageView.innerText = noConnectMsg;
+    return;
+  }
+  if (currentStep == null || updateEditor.value.length == 0) {
+    messageView.innerText = '当前没有填写文本';
+    return;
+  }
+  messageView.innerText = '';
+  const step = {
+    content: updateEditor.value,
+    module: MODULE_STEP_UPDATE,
+    action: currentStep.id,
+    v: VERSION,
+  };
+  console.log(`update step ${step}`);
+  ws.send(JSON.stringify(step));
+  // 发送成功，才能更新 steps 里面的content //todo
+  // 找到 显示的那个布局
+  let updateStep = document.getElementsByClassName('textWrap nian_step list-group-item');
+  console.log('准备更新', updateStep.length);
+  console.log('currentStep', currentStep);
+  console.log('准备更新', updateStep);
+  for (let i = 0; i < updateStep.length; i++) {
+    if (updateStep[i].id == currentStep.id) {
+      console.log('找到那个id', updateStep[i]);
+      updateStep[i].innerHTML = updateEditor.value;
+    }
+  }
+}
+
+function pushAdd() {
+  console.log(`connectState ${connectState}`);
+  if (connected == false) {
+    messageView.innerText = noConnectMsg;
+    return;
+  }
+  if (currentDream == null) {
+    messageView.innerText = '当前没有选择记本';
+    return;
+  }
+  if (updateEditor.value.length == 0) {
+    messageView.innerText = '当前没有填写文本';
+    return;
+  }
+  messageView.innerText = '';
+  const step = {
+    content: updateEditor.value,
+    module: MODULE_STEP_ADD,
+    action: currentDream.id,
+    v: VERSION,
+  };
+  console.log('add step', step);
+  ws.send(JSON.stringify(step));
+}
+
+function getDreamDetail(item) {
+  if (item == null) return;
+  console.log('getDreamDetail.id', item.id);
   const getDreamDetail = {
-    content: dreamId.toString(), // 空表示获得所有记本信息
+    content: item.id.toString(), // 空表示获得所有记本信息
     module: MODULE_DREAM_DETAIL,
     action: ACTION_INFO,
     v: VERSION,
   };
+  currentDream = item;
   ws.send(JSON.stringify(getDreamDetail));
 }
 
 // 信令连接相关
 // 连接状态
-var connected = false;
-
 function onopen(e) {
-
 // 连接建立时触发函数
   console.log(`onopen readyState=${ws.readyState} e=${e}`);
-  remoteHost.innerText = `已连接到远端主机:${ws._socket.remoteAddress}:${ws._socket.remotePort}`;
+  connectButton.innerText = '已连接';
+  remoteHost.innerText = `远端主机:${ws._socket.remoteAddress}:${ws._socket.remotePort}`;
   localClient.innerText = `本机地址:${ws._socket.localAddress}:${ws._socket.localPort}`;
   if (ws.readyState == CONNECT_OK) {
     // 发送一个消息，表示设备情况
@@ -244,6 +311,7 @@ function startListener() {
     console.log('onclose!', event);
     remoteHost.innerText = '远端主机';
     connectState.innerText = `连接已关闭`;
+    connectButton.innerText = '连接到 nian';
   };
 
   ws.onerror = (event) => {
@@ -258,46 +326,9 @@ function closeListener() {
   connectState.innerText = '连接已关闭';
 }
 
-function pushInto() {
-  console.log(`connectState ${connectState}`);
-  if (connected == false) {
-    txtEditor.innerText = '\nHi \n先填写下面的主机地址和端口（参照手机上的 nian 提示），\n然后点击[CONNECT TO NIAN]，等下方显示连接成功后，即可使用';
-    return;
-  }
-  let stepAction = ACTION_APPEND;
-  if (radioR.checked) {
-    stepAction = ACTION_REPLACE;
-  }
-  const step = {
-    content: txtEditor.value,
-    module: MODULE_STEP,
-    action: stepAction,
-    v: VERSION,
-  };
-  if (radioA.checked) {
-    console.log('set radio append');
-    store.set('radio', 'append');
-  }
-  if (radioR.checked) {
-    console.log('set radio replace');
-    store.set('radio', 'replace');
-  }
-  console.log(`read step ${step}`);
-  ws.send(JSON.stringify(step));
-}
-
 ipcRenderer.on(ASYNCHRONOUS_MSG_REPLY, (event, arg) => {
   console.log(`replay arg=${arg}`);
   switch (arg) {
-    case REPLY_PUSH:
-      pushInto();
-      break;
-    case REPLY_CONNECT:
-      startListener();
-      break;
-    case REPLY_DISCONNECT:
-      closeListener();
-      break;
     case REPLY_PASTE:
       pasteClipToContent();
       break;
