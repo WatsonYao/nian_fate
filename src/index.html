@@ -19,83 +19,65 @@
 
         body, html {
             height: 100%;
-            background: #fefefe;
-        }
-
-        .bottomBar {
-            position: fixed;
-            bottom: 0;
-            width: 100%;
-            display: block;
-            background: #f1f1f1;
-            /*字体居中*/
-        }
-
-        .wrap {
-            display: flex;
-        }
-
-        .textWrap {
-            display: -webkit-box;
-            -webkit-box-orient: vertical;
-            -webkit-line-clamp: 3;
-            overflow: hidden;
         }
 
     </style>
 </head>
 <body>
-<div class="container" style="height: 100%">
-    <div class="row" style="height: 80%">
-        <div class="col-2" style="height: 100%">
-            <div>
-                <p>dream list</p>
-                <ul id="dream_list" class="list-group">
-                </ul>
+<div class="row" style="height: 90vh;padding: 1rem;margin-left:0px; margin-right:0px;">
+    <div class="col-2" style="height: 80vh;background: #3399cc">
+        <p class="h6">记本</p>
+        <ul id="dream_list" class="list-group" style="height:80vh;overflow:auto; position: relative;">
+        </ul>
+    </div>
+    <div class="col-3" style="height: 80vh; background: #99cc33">
+        <p class="h6">进展</p>
+        <ul id="dream_detail" class="list-group" style="height:80vh;overflow:auto; position: relative;">
+        </ul>
+    </div>
+    <div class="col-7" style="height: 80vh; background: #cc99cc">
+        <div class="row align-items-center" style="padding-top: 1rem;padding-bottom: 1rem">
+            <div class="col-8">
+                <span id="message">xxx</span>
+            </div>
+            <div class="col-2">
+                <button id="push" type="button" class="btn btn-secondary btn-block">
+                    <span>更新</span>
+                </button>
+            </div>
+            <div class="col-2">
+                <button id="newContent" type="button" class="btn btn-secondary btn-block">
+                    <span>新增</span>
+                </button>
             </div>
         </div>
-        <div class="col-4" style="height: 100%">
-            <div>
-                <p>step list</p>
-                <ul id="dream_detail" class="list-group">
-                </ul>
-            </div>
-        </div>
-        <div class="col-6" style="height: 100%">
-            <div style="height: 100%">
-                <button id="push" type="button" class="btn btn-secondary">
-                    <span>update</span>
-                </button>
-                <button id="newContent" type="button" class="btn btn-secondary">
-                    <span>new</span>
-                </button>
-                <p id="message"></p>
-                <div id="updateEditor" class="card"
-                     contenteditable="true"
-                     style="height: 100%;min-height: 300px;padding: 1rem"></div>
-            </div>
+        <div class="row">
+            <div id="updateEditor" class="col-12 card"
+                 contenteditable="true"
+                 style="height: 65vh;overflow:auto;min-height: 280px;padding: 1rem;"></div>
         </div>
     </div>
-    <div class="row" style="height: 20%;">
-        <div class="row">
-            <!-- ---------------- 连接配置 -->
-            <input id="host_ip" type="text" placeholder="主机地址">
-            <input id="host_port" type="text" placeholder="端口">
-            <!-- ---------------- 连接信息 -->
-            <div>
-                <p id="remote_host">远端主机</p>
-                <p id="local_client">本机地址</p>
-            </div>
-
-        </div>
-        <div class="row">
-            <!-- ---------------- 连接按钮 -->
-            <button id="connect" type="button" class="btn btn-primary">
-                <span>连接到 nian</span>
-            </button>
-            <!-- ---------------- 状态信息 -->
-            <p id="connect_state">连接状态</p>
-        </div>
+</div>
+<div class="row align-items-center" style="height: 10vh;padding: 1rem;background: #33cc99;margin-left:0px; margin-right:0px;">
+    <!-- ---------------- 连接配置 -->
+    <div class="col-2">
+        <input id="host_ip" type="text" placeholder="主机地址">
+    </div>
+    <div class="col-2">
+        <input id="host_port" type="text" placeholder="端口">
+    </div>
+    <!-- ---------------- 连接信息 -->
+    <div class="col-4">
+        <span id="local_client">本机地址</span>
+    </div>
+    <div class="col-2">
+        <!-- ---------------- 状态信息 -->
+        <span id="connect_state">连接状态</span>
+    </div>
+    <div class="col-2">
+        <button id="connect" type="button" class="btn btn-primary btn-block">
+            <span>连接到 nian</span>
+        </button>
     </div>
 </div>
 

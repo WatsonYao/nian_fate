@@ -20,7 +20,6 @@ const clipboard = require('electron').clipboard;
 let ws;
 
 const updateEditor = document.getElementById('updateEditor');
-const remoteHost = document.getElementById('remote_host');
 const localClient = document.getElementById('local_client');
 const connectState = document.getElementById('connect_state');
 const hostIP = document.getElementById('host_ip');
@@ -149,8 +148,13 @@ function showStepList(steps) {
   for (let i = 0; i < steps.length; i++) {
     let li = document.createElement('li');
     let item = steps[i];
-    li.innerText = item.content;
-    li.className = 'textWrap nian_step list-group-item';
+    let length = item.content.length;
+    if(length>50){
+      li.innerText = item.content.substr(0,50)+"...";
+    }else{
+      li.innerText = item.content;
+    }
+    li.className = 'list-group-item';
     li.id = item.id;
     li.onclick = function () {
       clickStepDetail(item);
@@ -172,13 +176,13 @@ function pushUpdate() {
     messageView.innerText = noConnectMsg;
     return;
   }
-  if (currentStep == null || updateEditor.value.length == 0) {
+  if (currentStep == null || updateEditor.innerText.length == 0) {
     messageView.innerText = '当前没有填写文本';
     return;
   }
   messageView.innerText = '';
   const step = {
-    content: updateEditor.value,
+    content: updateEditor.innerText,
     module: MODULE_STEP_UPDATE,
     action: currentStep.id,
     v: VERSION,
@@ -187,14 +191,14 @@ function pushUpdate() {
   ws.send(JSON.stringify(step));
   // 发送成功，才能更新 steps 里面的content //todo
   // 找到 显示的那个布局
-  let updateStep = document.getElementsByClassName('textWrap nian_step list-group-item');
+  let updateStep = document.getElementsByClassName('list-group-item');
   console.log('准备更新', updateStep.length);
   console.log('currentStep', currentStep);
   console.log('准备更新', updateStep);
   for (let i = 0; i < updateStep.length; i++) {
     if (updateStep[i].id == currentStep.id) {
       console.log('找到那个id', updateStep[i]);
-      updateStep[i].innerHTML = updateEditor.value;
+      updateStep[i].innerHTML = updateEditor.innerText;
     }
   }
 }
@@ -209,13 +213,13 @@ function pushAdd() {
     messageView.innerText = '当前没有选择记本';
     return;
   }
-  if (updateEditor.value.length == 0) {
+  if (updateEditor.innerText.length == 0) {
     messageView.innerText = '当前没有填写文本';
     return;
   }
   messageView.innerText = '';
   const step = {
-    content: updateEditor.value,
+    content: updateEditor.innerText,
     module: MODULE_STEP_ADD,
     action: currentDream.id,
     v: VERSION,
@@ -243,7 +247,6 @@ function onopen(e) {
 // 连接建立时触发函数
   console.log(`onopen readyState=${ws.readyState} e=${e}`);
   connectButton.innerText = '已连接';
-  remoteHost.innerText = `远端主机:${ws._socket.remoteAddress}:${ws._socket.remotePort}`;
   localClient.innerText = `本机地址:${ws._socket.localAddress}:${ws._socket.localPort}`;
   if (ws.readyState == CONNECT_OK) {
     // 发送一个消息，表示设备情况
@@ -309,7 +312,6 @@ function startListener() {
     // 连接关闭时触发
     connected = false;
     console.log('onclose!', event);
-    remoteHost.innerText = '远端主机';
     connectState.innerText = `连接已关闭`;
     connectButton.innerText = '连接到 nian';
   };
