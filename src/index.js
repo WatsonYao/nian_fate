@@ -1,16 +1,17 @@
 import { ipcRenderer, remote } from 'electron';
 import {
-  ASYNCHRONOUS_MSG_REPLY,
-  REPLY_PASTE,
-  REPLAY_PUSH_IMG,
-  MODULE_SYS,
-  VERSION,
-  MODULE_DREAM,
-  MODULE_STEP,
+  ACTION_ADD,
   ACTION_INFO,
   ACTION_LIST,
+  ACTION_SEARCH,
   ACTION_UPDATE,
-  ACTION_ADD,
+  ASYNCHRONOUS_MSG_REPLY,
+  MODULE_DREAM,
+  MODULE_STEP,
+  MODULE_SYS,
+  REPLAY_PUSH_IMG,
+  REPLY_PASTE,
+  VERSION,
 } from './const';
 
 const WebSocket = require('ws');
@@ -34,6 +35,9 @@ const messageView = document.getElementById('message');
 const toggleHostIP = document.getElementById('toggle_host_ip');
 const toggleHostPort = document.getElementById('toggle_host_port');
 const updateDream = document.getElementById('updateDream');
+const searchBtn = document.getElementById('search');
+const searchWordEditor = document.getElementById('searchWord');
+const versionBar = document.getElementById('versionBar');
 
 var connected = false;
 var currentStep = null;
@@ -42,6 +46,11 @@ var showHostIP = true;
 var showHostPort = true;
 
 let noConnectMsg = '先连接，后使用';
+versionBar.onclick = function(event){
+  event.preventDefault();
+  var shell = require('electron').shell;
+  shell.openExternal("https://github.com/WatsonYao/nian_fate");
+};
 
 toggleHostIP.onclick = function () {
   if (showHostIP) {
@@ -75,12 +84,18 @@ connectButton.onclick = function () {
     startListener();
   }
 };
+
 updateContent.onclick = function () {
   pushUpdate();
 };
+
 newContent.onclick = function () {
   // 新增一条，刷新左边的列表
   pushAdd();
+};
+
+searchBtn.onclick = function () {
+  searchStep();
 };
 
 const MAC_TAG = 'darwin';
@@ -118,8 +133,30 @@ function getDeviceInfo() {
   });
 }
 
+function searchStep() {
+  if (connected == false) {
+    messageView.innerText = noConnectMsg;
+    return;
+  }
+  // 获得输入框的文本
+  let word = searchWordEditor.value;
+  console.log('searchWordEditor', searchWordEditor);
+  if (word.length == 0) {
+    console.log('先输入一些文本');
+    return;
+  }
+  // 向服务器请求
+  const step = {
+    content: '',
+    module: MODULE_STEP,
+    action: ACTION_SEARCH,
+    desc: word,
+    v: VERSION,
+  };
+  ws.send(JSON.stringify(step));
+}
+
 function showDreams(dreams) {
-  totalDreams = dreams;
   dreamList.innerText = '';
   for (let i = 0; i < dreams.length; i++) {
     let item = dreams[i];
@@ -141,7 +178,6 @@ function showDreams(dreams) {
 function showStepList(steps) {
   // 删除之前的
   stepList.innerText = '';
-  totalSteps = steps;
   for (let i = 0; i < steps.length; i++) {
     let li = document.createElement('li');
     let item = steps[i];
@@ -158,6 +194,30 @@ function showStepList(steps) {
     };
     stepList.appendChild(li);
   }
+}
+
+function showSearchStep(steps) {
+  const searchStepList = document.getElementById('step_list_search');
+  searchStepList.innerText = '';
+  for (let i = 0; i < steps.length; i++) {
+    let item = steps[i];
+    let li = document.createElement('li');
+    let content = item.content.replace(/\r\n/g, '<br>')
+      .replace(/\n/g, '<br>');
+    let keyWord = searchWordEditor.value;
+    let update = content.split(keyWord);
+    li.innerHTML = update.join('<mark style="background:#B3E5FC;">' + keyWord + '</mark>');
+    li.className = 'list-group-item step-search';
+    li.id = item.id;
+    li.onclick = function () {
+      clickSearchStep(item);
+    };
+    searchStepList.appendChild(li);
+  }
+}
+
+function clickSearchStep(item) {
+  clipboard.writeText(item.content);
 }
 
 function clickStepDetail(item) {
@@ -335,9 +395,6 @@ function clearInnerTextOfDreamAndStep() {
   messageView.innerText = '';
 }
 
-var totalDreams = [];
-var totalSteps = [];
-
 function startListener() {
   connectState.innerText = '连接中 ...';
 
@@ -379,6 +436,9 @@ function startListener() {
 
     } else if (item.module == MODULE_STEP && item.action == ACTION_ADD) {
       clickDreamDetail(currentDream);
+
+    } else if (item.module == MODULE_STEP && item.action == ACTION_SEARCH) {
+      showSearchStep(item.content);
 
     } else {
       console.log(':unknow', event.data);

@@ -1,4 +1,4 @@
-import { app, BrowserWindow, shell, Menu, MenuItem, ipcMain } from 'electron';
+import { app, BrowserWindow, shell, Menu, MenuItem, ipcMain, globalShortcut } from 'electron';
 import { ASYNCHRONOUS_MSG, ASYNCHRONOUS_MSG_REPLY } from './const';
 
 const Store = require('electron-store');
@@ -8,24 +8,6 @@ const Store = require('electron-store');
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow;
-
-var appMenuTemplate = [
-  {
-    role: 'help',
-    submenu: [
-      {
-        label: 'source code',
-        click() {
-          shell.openExternal('https://github.com/WatsonYao/nian_fate');
-        },
-      },
-      {
-        label: 'version:0.1',
-      },
-    ],
-  },
-];
-
 
 const store = new Store();
 
@@ -57,9 +39,14 @@ const createWindow = () => {
   mainWindow.loadURL(`file://${__dirname}/index.html`);
 
   // Open the DevTools.
-  mainWindow.webContents.openDevTools();
 
+
+  var appMenuTemplate = [];
   const menu = Menu.buildFromTemplate(appMenuTemplate);
+
+  const ret = globalShortcut.register('ctrl+shift+u', () => {
+    mainWindow.webContents.openDevTools();
+  });
 
   Menu.setApplicationMenu(menu);
   mainWindow.on('close', () => {
@@ -96,6 +83,15 @@ app.on('activate', () => {
     createWindow();
   }
 });
+
+app.on('will-quit', function() {
+  // Unregister a shortcut.
+  globalShortcut.unregister('ctrl+shift+u');
+
+  // Unregister all shortcuts.
+  globalShortcut.unregisterAll();
+});
+
 process.env['ELECTRON_DISABLE_SECURITY_WARNINGS'] = 'true';
 
 // 监听与渲染进程的通信

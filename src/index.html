@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Nian</title>
+    <title>nian</title>
     <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
     <!-- Insert this line above script imports  -->
     <script>if (typeof module === 'object') {
@@ -19,7 +19,7 @@
 
         body, html {
             height: 100%;
-            background: #efefef;
+            background: #fefefe;
         }
 
         .list-group-item {
@@ -46,6 +46,12 @@
             background-color: #bbb;
         }
 
+        .versionBar {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+        }
+
     </style>
 </head>
 <body>
@@ -68,6 +74,12 @@
         <div class="d-flex align-items-center">
             <div class="p-2 mr-auto">
                 <span class="h6">进展</span>
+            </div>
+            <div class="p-2">
+                <button id="stepSearch" type="button" class="btn btn-light btn-sm"
+                        data-toggle="modal" data-target="#searchModal">
+                    <span>搜索</span>
+                </button>
             </div>
             <div class="p-2">
                 <button id="newContent" type="button" class="btn btn-light btn-sm">
@@ -125,6 +137,28 @@
         <span id="connect_state" class="small">连接状态</span>
     </div>
 
+</div>
+<div class="modal fade" id="searchModal">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-body" style="height: 90vh;">
+                <div class="input-group" style="padding-bottom: 1rem">
+                    <input type="text" class="form-control" placeholder="Search" id="searchWord">
+                    <div class="input-group-append">
+                        <button id="search" class="btn btn-success" type="submit">搜索</button>
+                    </div>
+                </div>
+                <div style="height: 80vh;display: flex;flex-direction: column">
+                    <ul id="step_list_search" class="list-group"
+                        style="height:80vh;overflow:auto; position: relative;">
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="versionBar" id="versionBar">
+    <span style="font-size: 0.7rem;color:#B3E5FC">alpha02</span>
 </div>
 </body>
 <!-- Required MDC Web JavaScript library -->

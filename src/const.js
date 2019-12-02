@@ -12,5 +12,6 @@ module.exports = {
   ACTION_LIST: 'list',
   ACTION_UPDATE: 'update',
   ACTION_ADD: 'add',
+  ACTION_SEARCH: 'search',
   KEY_DESC: 'desc'
 };
