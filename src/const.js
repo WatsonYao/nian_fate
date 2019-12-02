@@ -4,13 +4,13 @@ module.exports = {
   ASYNCHRONOUS_MSG_REPLY: 'asynchronous-msg-reply',
   REPLAY_PUSH_IMG: 'push_img',
   REPLY_PASTE: 'paste',
+
   MODULE_SYS: 'sys',
-  ACTION_INFO: 'info',
+  MODULE_DREAM: 'dream',
   MODULE_STEP: 'step',
-  MODULE_STEP_UPDATE: 'step_update',
-  MODULE_STEP_ADD: 'step_add',
-  ACTION_APPEND: 'append',
-  ACTION_REPLACE: 'replace',
-  MODULE_DREAM_LIST: 'dream_list',
-  MODULE_DREAM_DETAIL: 'dream_detail',
+  ACTION_INFO: 'info',
+  ACTION_LIST: 'list',
+  ACTION_UPDATE: 'update',
+  ACTION_ADD: 'add',
+  KEY_DESC: 'desc'
 };

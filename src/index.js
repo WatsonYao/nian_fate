@@ -4,12 +4,13 @@ import {
   REPLY_PASTE,
   REPLAY_PUSH_IMG,
   MODULE_SYS,
-  ACTION_INFO,
-  MODULE_STEP_UPDATE,
   VERSION,
-  MODULE_DREAM_LIST,
-  MODULE_DREAM_DETAIL,
-  MODULE_STEP_ADD,
+  MODULE_DREAM,
+  MODULE_STEP,
+  ACTION_INFO,
+  ACTION_LIST,
+  ACTION_UPDATE,
+  ACTION_ADD,
 } from './const';
 
 const WebSocket = require('ws');
@@ -25,17 +26,45 @@ const connectState = document.getElementById('connect_state');
 const hostIP = document.getElementById('host_ip');
 const hostPort = document.getElementById('host_port');
 const dreamList = document.getElementById('dream_list');
-const dreamDetail = document.getElementById('dream_detail');
+const stepList = document.getElementById('step_list');
 const connectButton = document.getElementById('connect');
-const pushButton = document.getElementById('push');
+const updateContent = document.getElementById('updateContent');
 const newContent = document.getElementById('newContent');
 const messageView = document.getElementById('message');
+const toggleHostIP = document.getElementById('toggle_host_ip');
+const toggleHostPort = document.getElementById('toggle_host_port');
+const updateDream = document.getElementById('updateDream');
 
 var connected = false;
 var currentStep = null;
 var currentDream = null;
+var showHostIP = true;
+var showHostPort = true;
 
-let noConnectMsg = '\nHi \n先填写下面的主机地址和端口（参照手机上的 nian 提示），\n然后点击[CONNECT TO NIAN]，等下方显示连接成功后，即可使用';
+let noConnectMsg = '先连接，后使用';
+
+toggleHostIP.onclick = function () {
+  if (showHostIP) {
+    hostIP.setAttribute('type', 'password');
+  } else {
+    hostIP.setAttribute('type', 'text');
+  }
+  showHostIP = !showHostIP;
+};
+
+toggleHostPort.onclick = function () {
+  if (showHostPort) {
+    hostPort.setAttribute('type', 'password');
+  } else {
+    hostPort.setAttribute('type', 'text');
+  }
+  showHostPort = !showHostPort;
+};
+
+updateDream.onclick = function () {
+  console.log('update dream list');
+  actionOfGetDream();
+};
 
 connectButton.onclick = function () {
   // 判断当前是否是连接状态，如果是连接，则是断开连接的操作
@@ -46,13 +75,12 @@ connectButton.onclick = function () {
     startListener();
   }
 };
-pushButton.onclick = function () {
+updateContent.onclick = function () {
   pushUpdate();
 };
 newContent.onclick = function () {
   // 新增一条，刷新左边的列表
   pushAdd();
-  getDreamDetail(currentDream);
 };
 
 const MAC_TAG = 'darwin';
@@ -90,6 +118,294 @@ function getDeviceInfo() {
   });
 }
 
+function showDreams(dreams) {
+  totalDreams = dreams;
+  dreamList.innerText = '';
+  for (let i = 0; i < dreams.length; i++) {
+    let item = dreams[i];
+    let li = document.createElement('li');
+    if (currentDream != null && item.id == currentDream.id) {
+      li.className = 'list-group-item dream list-group-item-primary';
+    } else {
+      li.className = 'list-group-item dream';
+    }
+    li.id = item.id;
+    li.innerHTML = item.name;
+    li.onclick = function () {
+      clickDreamDetail(item);
+    };
+    dreamList.appendChild(li);
+  }
+}
+
+function showStepList(steps) {
+  // 删除之前的
+  stepList.innerText = '';
+  totalSteps = steps;
+  for (let i = 0; i < steps.length; i++) {
+    let li = document.createElement('li');
+    let item = steps[i];
+    let content = getShortContent(item.content);
+    li.innerText = content;
+    if (item.selected) {
+      li.className = 'list-group-item step list-group-item-primary';
+    } else {
+      li.className = 'list-group-item step';
+    }
+    li.id = item.id;
+    li.onclick = function () {
+      clickStepDetail(item);
+    };
+    stepList.appendChild(li);
+  }
+}
+
+function clickStepDetail(item) {
+  currentStep = item;
+  updateEditor.innerText = item.content;
+  updateStepsSelected();
+}
+
+function pushUpdate() {
+  if (connected == false) {
+    messageView.innerText = noConnectMsg;
+    return;
+  }
+  if (currentStep == null) {
+    messageView.innerText = '未选择要更新的进展';
+    return;
+  }
+  messageView.innerText = '';
+  const step = {
+    content: updateEditor.innerText,
+    module: MODULE_STEP,
+    action: ACTION_UPDATE,
+    desc: currentStep.id,
+    v: VERSION,
+  };
+  ws.send(JSON.stringify(step));
+  // 发送成功，才能更新 steps 里面的content //todo
+  // 找到 显示的那个布局
+  let updateStep = document.getElementsByClassName('list-group-item step list-group-item-primary');
+  for (let i = 0; i < updateStep.length; i++) {
+    if (updateStep[i].id == currentStep.id) {
+      let content = getShortContent(updateEditor.innerText);
+      updateStep[i].innerHTML = content;
+    }
+  }
+}
+
+let maxContentLength = 80;
+
+function getShortContent(content) {
+  let length = content.length;
+  if (length > maxContentLength) {
+    return content.substr(0, maxContentLength) + '...';
+  } else {
+    return content;
+  }
+}
+
+function clickDreamDetail(item) {
+  if (item == null) return;
+  console.log(`click dream=${item.id}+${item.name}`);
+  const getDreamDetail = {
+    module: MODULE_STEP,
+    action: ACTION_LIST,
+    desc: item.id.toString(),
+    v: VERSION,
+  };
+  currentDream = item;
+  currentStep = null;
+  updateEditor.innerText = '';
+  clearMessage();
+  ws.send(JSON.stringify(getDreamDetail));
+  // 更新点击后的样式
+  updateDreamSelected();
+}
+
+function updateDreamSelected() {
+  let dreams = document.getElementsByClassName('list-group-item dream');
+  for (let i = 0; i < dreams.length; i++) {
+    if (dreams[i].id == currentDream.id) {
+      dreams[i].className = 'list-group-item dream list-group-item-primary';
+    } else {
+      dreams[i].className = 'list-group-item dream';
+    }
+  }
+}
+
+function updateStepsSelected() {
+  let steps = document.getElementsByClassName('list-group-item step');
+  for (let i = 0; i < steps.length; i++) {
+    if (steps[i].id == currentStep.id) {
+      steps[i].className = 'list-group-item step list-group-item-primary';
+    } else {
+      steps[i].className = 'list-group-item step';
+    }
+  }
+}
+
+function clearMessage() {
+  messageView.innerText = '';
+}
+
+function pushAdd() {
+  if (connected == false) {
+    messageView.innerText = noConnectMsg;
+    return;
+  }
+  if (currentDream == null) {
+    messageView.innerText = '当前没有选择记本';
+    return;
+  }
+  messageView.innerText = '';
+  updateEditor.innerText = '新增';
+  currentStep = null;
+  const step = {
+    content: '新增',
+    module: MODULE_STEP,
+    action: ACTION_ADD,
+    desc: currentDream.id,
+    v: VERSION,
+  };
+  ws.send(JSON.stringify(step));
+}
+
+function connectButtonUpdate(flag) {
+  if (flag) {
+    connectState.innerText = '连接成功';
+    connectButton.innerText = '已连接';
+    connectButton.className = 'btn btn-success btn-block';
+  } else {
+    connectState.innerText = '连接已关闭';
+    connectButton.innerText = '连接到 nian';
+    connectButton.className = 'btn btn-danger btn-block';
+  }
+}
+
+// 信令连接相关
+// 连接状态
+function onopen(e) {
+// 连接建立时触发函数
+  console.log('onopen readyState', ws.readyState);
+  console.log('onopen e', e);
+  connectButtonUpdate(true);
+  localClient.innerText = `本机:${ws._socket.localAddress}:${ws._socket.localPort}`;
+  if (ws.readyState == CONNECT_OK) {
+    // 发送一个消息，表示设备情况
+    connected = true;
+    actionOfPushDevice();
+    actionOfGetDream();
+  }
+// 只读属性readyState表示连接状态
+}
+
+function actionOfGetDream() {
+  if (connected == false) {
+    messageView.innerText = noConnectMsg;
+    return;
+  }
+  const getDream = {
+    desc: '', // 空表示获得所有记本信息
+    module: MODULE_DREAM,
+    action: ACTION_LIST,
+    v: VERSION,
+  };
+  ws.send(JSON.stringify(getDream));
+}
+
+function actionOfPushDevice() {
+  const device = {
+    desc: getDeviceInfo(),
+    module: MODULE_SYS,
+    action: ACTION_INFO,
+    v: VERSION,
+  };
+  clearInnerTextOfDreamAndStep();
+  ws.send(JSON.stringify(device));
+}
+
+function clearInnerTextOfDreamAndStep() {
+  dreamList.innerText = '';
+  stepList.innerText = '';
+  updateEditor.innerText = '';
+  currentStep = null;
+  currentDream = null;
+  messageView.innerText = '';
+}
+
+var totalDreams = [];
+var totalSteps = [];
+
+function startListener() {
+  connectState.innerText = '连接中 ...';
+
+  const hostIPValue = hostIP.value;
+  const hostPortValue = hostPort.value;
+  console.log(`hostIP ${hostIPValue}`);
+  console.log(`hostPort ${hostPortValue}`);
+
+  if (hostIPValue == '' || hostIPValue == undefined
+    || hostPortValue == '' || hostPortValue == undefined) {
+    connectState.innerText = '请完整填写主机地址和端口号 ...';
+    return;
+  }
+
+  store.set('ip', hostIPValue);
+  store.set('port', hostPortValue);
+
+  ws = new WebSocket(`ws://${hostIPValue}:${hostPortValue}/ws`);
+  ws.onopen = onopen;
+
+  ws.onclose = (event) => {
+    connected = false;
+    console.log('ws onclose', event);
+    connectButtonUpdate(false);
+  };
+  ws.onerror = (event) => {
+    console.log('ws onError', event);
+    connectState.innerText = `连接出错 ${event}`;
+  };
+
+  ws.onmessage = (event) => {
+    let item = JSON.parse(event.data);
+    console.log(`server message=${item.module}+${item.action}`);
+    if (item.module == MODULE_DREAM && item.action == ACTION_LIST) {
+      showDreams(item.content);
+
+    } else if (item.module == MODULE_STEP && item.action == ACTION_LIST) {
+      showStepList(item.content);
+
+    } else if (item.module == MODULE_STEP && item.action == ACTION_ADD) {
+      clickDreamDetail(currentDream);
+
+    } else {
+      console.log(':unknow', event.data);
+    }
+  };
+}
+
+function closeListener() {
+  ws.close();
+  connectState.innerText = '连接已关闭';
+  dreamList.innerText = '';
+  stepList.innerText = '';
+}
+
+ipcRenderer.on(ASYNCHRONOUS_MSG_REPLY, (event, arg) => {
+  console.log(`replay arg=${arg}`);
+  switch (arg) {
+    case REPLY_PASTE:
+      pasteClipToContent();
+      break;
+    case REPLAY_PUSH_IMG:
+      pushImage();
+    default:
+  }
+});
+
+
 // 粘贴图片相关
 let imageWidth = 0;
 let imageHeight = 0;
@@ -116,226 +432,3 @@ function pushImage() {
   const data = image.toDataURL();
   ws.send(data, { binary: true });
 }
-
-function showDreams(dreams) {
-  // console.log('dreams', dreams);
-  for (let i = 0; i < dreams.length; i++) {
-    let li = document.createElement('li');
-    li.className = 'list-group-item';
-    let item = dreams[i];
-    li.innerHTML = item.name;
-    li.onclick = function () {
-      getDreamDetail(item);
-    };
-    console.log('dreams item', item);
-    dreamList.appendChild(li);
-  }
-}
-
-function clearInnerTextOfDreamAndStep() {
-  dreamList.innerText = '';
-  dreamDetail.innerText = '';
-  updateEditor.innerText = '';
-  currentStep = null;
-  currentDream = null;
-  messageView.innerText = '';
-}
-
-function showStepList(steps) {
-  console.log('steps', steps);
-  // 删除之前的
-  dreamDetail.innerText = '';
-  for (let i = 0; i < steps.length; i++) {
-    let li = document.createElement('li');
-    let item = steps[i];
-    let length = item.content.length;
-    if(length>50){
-      li.innerText = item.content.substr(0,50)+"...";
-    }else{
-      li.innerText = item.content;
-    }
-    li.className = 'list-group-item';
-    li.id = item.id;
-    li.onclick = function () {
-      clickStepDetail(item);
-    };
-    console.log('step item', item);
-    dreamDetail.appendChild(li);
-  }
-}
-
-function clickStepDetail(item) {
-  console.log('clickStepDetail', item);
-  currentStep = item;
-  updateEditor.innerText = item.content;
-}
-
-function pushUpdate() {
-  console.log(`connectState ${connectState}`);
-  if (connected == false) {
-    messageView.innerText = noConnectMsg;
-    return;
-  }
-  if (currentStep == null || updateEditor.innerText.length == 0) {
-    messageView.innerText = '当前没有填写文本';
-    return;
-  }
-  messageView.innerText = '';
-  const step = {
-    content: updateEditor.innerText,
-    module: MODULE_STEP_UPDATE,
-    action: currentStep.id,
-    v: VERSION,
-  };
-  console.log(`update step ${step}`);
-  ws.send(JSON.stringify(step));
-  // 发送成功，才能更新 steps 里面的content //todo
-  // 找到 显示的那个布局
-  let updateStep = document.getElementsByClassName('list-group-item');
-  console.log('准备更新', updateStep.length);
-  console.log('currentStep', currentStep);
-  console.log('准备更新', updateStep);
-  for (let i = 0; i < updateStep.length; i++) {
-    if (updateStep[i].id == currentStep.id) {
-      console.log('找到那个id', updateStep[i]);
-      updateStep[i].innerHTML = updateEditor.innerText;
-    }
-  }
-}
-
-function pushAdd() {
-  console.log(`connectState ${connectState}`);
-  if (connected == false) {
-    messageView.innerText = noConnectMsg;
-    return;
-  }
-  if (currentDream == null) {
-    messageView.innerText = '当前没有选择记本';
-    return;
-  }
-  if (updateEditor.innerText.length == 0) {
-    messageView.innerText = '当前没有填写文本';
-    return;
-  }
-  messageView.innerText = '';
-  const step = {
-    content: updateEditor.innerText,
-    module: MODULE_STEP_ADD,
-    action: currentDream.id,
-    v: VERSION,
-  };
-  console.log('add step', step);
-  ws.send(JSON.stringify(step));
-}
-
-function getDreamDetail(item) {
-  if (item == null) return;
-  console.log('getDreamDetail.id', item.id);
-  const getDreamDetail = {
-    content: item.id.toString(), // 空表示获得所有记本信息
-    module: MODULE_DREAM_DETAIL,
-    action: ACTION_INFO,
-    v: VERSION,
-  };
-  currentDream = item;
-  ws.send(JSON.stringify(getDreamDetail));
-}
-
-// 信令连接相关
-// 连接状态
-function onopen(e) {
-// 连接建立时触发函数
-  console.log(`onopen readyState=${ws.readyState} e=${e}`);
-  connectButton.innerText = '已连接';
-  localClient.innerText = `本机地址:${ws._socket.localAddress}:${ws._socket.localPort}`;
-  if (ws.readyState == CONNECT_OK) {
-    // 发送一个消息，表示设备情况
-    connected = true;
-    const device = {
-      content: getDeviceInfo(),
-      module: MODULE_SYS,
-      action: ACTION_INFO,
-      v: VERSION,
-    };
-    connectState.innerText = '连接成功';
-    clearInnerTextOfDreamAndStep();
-    ws.send(JSON.stringify(device));
-    // 发送一个消息，获得记本列表
-    const getDream = {
-      content: '', // 空表示获得所有记本信息
-      module: MODULE_DREAM_LIST,
-      action: ACTION_INFO,
-      v: VERSION,
-    };
-    ws.send(JSON.stringify(getDream));
-  }
-// 只读属性readyState表示连接状态
-}
-
-function startListener() {
-  connectState.innerText = '连接中 ...';
-  console.log('reply connect');
-
-  const hostIPValue = hostIP.value;
-  const hostPortValue = hostPort.value;
-  console.log(`hostIP ${hostIPValue}`);
-  console.log(`hostPort ${hostPortValue}`);
-
-  if (hostIPValue == '' || hostIPValue == undefined
-    || hostPortValue == '' || hostPortValue == undefined) {
-    connectState.innerText = '请完整填写主机地址和端口号 ...';
-    return;
-  }
-
-  store.set('ip', hostIPValue);
-  store.set('port', hostPortValue);
-
-  ws = new WebSocket(`ws://${hostIPValue}:${hostPortValue}/ws`);
-  ws.onopen = onopen;
-
-  ws.onmessage = (event) => {
-// 客户端接收服务端数据时触发
-    let item = JSON.parse(event.data);
-    console.log('onmessage item.module', item.module);
-    if (item.module == MODULE_DREAM_LIST) {
-      console.log('onmessage show dream list');
-      showDreams(item.content);
-    } else if (item.module == MODULE_DREAM_DETAIL) {
-      console.log('onmessage show dream detail');
-      showStepList(item.content);
-    } else {
-      console.log('onmessage event', event.data);
-    }
-  };
-
-  ws.onclose = (event) => {
-    // 连接关闭时触发
-    connected = false;
-    console.log('onclose!', event);
-    connectState.innerText = `连接已关闭`;
-    connectButton.innerText = '连接到 nian';
-  };
-
-  ws.onerror = (event) => {
-    // 出错信息打印
-    console.log(`onError ${event}`);
-    connectState.innerText = `连接出错 ${event}`;
-  };
-}
-
-function closeListener() {
-  ws.close();
-  connectState.innerText = '连接已关闭';
-}
-
-ipcRenderer.on(ASYNCHRONOUS_MSG_REPLY, (event, arg) => {
-  console.log(`replay arg=${arg}`);
-  switch (arg) {
-    case REPLY_PASTE:
-      pasteClipToContent();
-      break;
-    case REPLAY_PUSH_IMG:
-      pushImage();
-    default:
-  }
-});

@@ -1,13 +1,13 @@
 ####JSON MESSAGE
 
-module | action | content | 备注
------------- | ------------- | ------------ | ------------
-sys | info  | e.g "pc-web" | 设备信息
-dream_list | info  | "" | 所有记本
-dream_detail | info  | "dreamId" | 记本下所有进展
-step_update | stepId  | "update content" | 进展内容更新
-step_add | dreamId  | "new content" | 进展内容更新
-img | info  | image array | 图片
+module | action |desc | content | 备注
+------------ | -------------| ------------ | ------------ | ------------
+sys | info  | e.g "pc-web"| | 设备信息
+dream | list  | "" | 所有记本 |
+step | list  | dreamId | 记本下所有进展|
+step | update  | stepId|"update content" | 进展内容更新
+step|  add  | dreamId | |进展新增回执
+img | info  | | image array| 图片
 
 ####
 #####使用说明
