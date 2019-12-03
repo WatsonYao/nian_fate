@@ -7,7 +7,7 @@ dream | list  | "" | dreamList |-|所有记本|
 step | list  | dreamId | stepList |-|所有进展|
 step | update  | stepId|"update content" | -|进展内容更新|-|
 step|  add  | dreamId | -|-|进展新增回执|-|
-step|  search  | keyword | -|-|进展新增回执|
+step|  search  | keyword | -|-|进展搜索回执|
 
 ##### 使用说明 
 0. 手机和电脑必须在同一个 WIFI 环境下。

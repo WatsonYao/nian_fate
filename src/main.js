@@ -1,5 +1,6 @@
 import { app, BrowserWindow, shell, Menu, MenuItem, ipcMain, globalShortcut, Tray } from 'electron';
 import { ASYNCHRONOUS_MSG, ASYNCHRONOUS_MSG_REPLY } from './const';
+
 const path = require('path');
 const Store = require('electron-store');
 // 是否可以安全退出
@@ -34,6 +35,7 @@ const createWindow = () => {
     webPreferences: {
       nodeIntegration: true,  // 注入node模块
     },
+    icon: path.join(__dirname, 'images/app_icon')
   });
 
   // and load the index.html of the app.
@@ -48,43 +50,57 @@ const createWindow = () => {
   // const menu = Menu.buildFromTemplate(appMenuTemplate);
   Menu.setApplicationMenu(null);
   mainWindow.on('close', (event) => {
-    const size = mainWindow.getSize();
-    store.set('width', size[0]);
-    store.set('height', size[1]);
-    mainWindow.hide();
-    mainWindow.setSkipTaskbar(true);
-    event.preventDefault();
-    //console.log(`close event ${mainWindow.getSize()}`);
+    if (process.platform === 'darwin') {
+      mainWindow = null;
+    }else{
+      const size = mainWindow.getSize();
+      store.set('width', size[0]);
+      store.set('height', size[1]);
+      mainWindow.hide();
+      mainWindow.setSkipTaskbar(true);
+      event.preventDefault();
+      //console.log(`close event ${mainWindow.getSize()}`);
+    }
   });
+
+  if (process.platform === 'darwin') {
+    //app.dock.setIcon(path.join(__dirname, 'images/app_icon'));
+  }
 
   // Emitted when the window is closed.
   mainWindow.on('closed', () => {
     mainWindow = null;
   });
 
-  mainWindow.on('show', () => {
-    tray.setHighlightMode('always');
-  });
+  if (process.platform === 'darwin') {
+    //app.dock.setIcon(path.join(__dirname, 'images/app_icon'));
 
-  mainWindow.on('hide', () => {
-    tray.setHighlightMode('never');
-  });
+  } else {
+    mainWindow.on('show', () => {
+      tray.setHighlightMode('always');
+    });
 
-  //创建系统通知区菜单
-  tray = new Tray(path.join(__dirname, 'images/app_icon.ico'));
-  const contextMenu = Menu.buildFromTemplate([
-    {
-      label: '完全退出', click: () => {
-        mainWindow.destroy();
-      }
-    },//我们需要在这里有一个真正的退出（这里直接强制退出）
-  ]);
-  tray.setToolTip('nian');
-  tray.setContextMenu(contextMenu);
-  tray.on('click', () => { //我们这里模拟桌面程序点击通知区图标实现打开关闭应用的功能
-    mainWindow.isVisible() ? mainWindow.hide() : mainWindow.show();
-    mainWindow.isVisible() ? mainWindow.setSkipTaskbar(false) : mainWindow.setSkipTaskbar(true);
-  });
+    mainWindow.on('hide', () => {
+      tray.setHighlightMode('never');
+    });
+
+    //创建系统通知区菜单
+    tray = new Tray(path.join(__dirname, 'images/app_icon.ico'));
+    const contextMenu = Menu.buildFromTemplate([
+      {
+        label: '完全退出', click: () => {
+          mainWindow.destroy();
+        }
+      },//我们需要在这里有一个真正的退出（这里直接强制退出）
+    ]);
+    tray.setToolTip('nian');
+    tray.setContextMenu(contextMenu);
+    tray.on('click', () => { //我们这里模拟桌面程序点击通知区图标实现打开关闭应用的功能
+      mainWindow.isVisible() ? mainWindow.hide() : mainWindow.show();
+      mainWindow.isVisible() ? mainWindow.setSkipTaskbar(false) : mainWindow.setSkipTaskbar(true);
+    });
+  }
+
 };
 
 // This method will be called when Electron has finished
