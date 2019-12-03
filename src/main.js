@@ -1,6 +1,6 @@
-import { app, BrowserWindow, shell, Menu, MenuItem, ipcMain, globalShortcut } from 'electron';
+import { app, BrowserWindow, shell, Menu, MenuItem, ipcMain, globalShortcut, Tray } from 'electron';
 import { ASYNCHRONOUS_MSG, ASYNCHRONOUS_MSG_REPLY } from './const';
-
+const path = require('path');
 const Store = require('electron-store');
 // 是否可以安全退出
 // let safeExit = false;
@@ -10,6 +10,7 @@ const Store = require('electron-store');
 let mainWindow;
 
 const store = new Store();
+let tray = null;
 
 const createWindow = () => {
   let sizeWidth = store.get('width');
@@ -38,25 +39,51 @@ const createWindow = () => {
   // and load the index.html of the app.
   mainWindow.loadURL(`file://${__dirname}/index.html`);
 
-  var appMenuTemplate = [];
-  const menu = Menu.buildFromTemplate(appMenuTemplate);
-
   const ret = globalShortcut.register('ctrl+shift+u', () => {
     // Open the DevTools.
     mainWindow.webContents.openDevTools();
   });
 
-  Menu.setApplicationMenu(menu);
-  mainWindow.on('close', () => {
+  // var appMenuTemplate = [];
+  // const menu = Menu.buildFromTemplate(appMenuTemplate);
+  Menu.setApplicationMenu(null);
+  mainWindow.on('close', (event) => {
     const size = mainWindow.getSize();
     store.set('width', size[0]);
     store.set('height', size[1]);
-    console.log(`close event ${mainWindow.getSize()}`);
+    mainWindow.hide();
+    mainWindow.setSkipTaskbar(true);
+    event.preventDefault();
+    //console.log(`close event ${mainWindow.getSize()}`);
   });
 
   // Emitted when the window is closed.
   mainWindow.on('closed', () => {
     mainWindow = null;
+  });
+
+  mainWindow.on('show', () => {
+    tray.setHighlightMode('always');
+  });
+
+  mainWindow.on('hide', () => {
+    tray.setHighlightMode('never');
+  });
+
+  //创建系统通知区菜单
+  tray = new Tray(path.join(__dirname, 'images/app_icon.ico'));
+  const contextMenu = Menu.buildFromTemplate([
+    {
+      label: '完全退出', click: () => {
+        mainWindow.destroy();
+      }
+    },//我们需要在这里有一个真正的退出（这里直接强制退出）
+  ]);
+  tray.setToolTip('nian');
+  tray.setContextMenu(contextMenu);
+  tray.on('click', () => { //我们这里模拟桌面程序点击通知区图标实现打开关闭应用的功能
+    mainWindow.isVisible() ? mainWindow.hide() : mainWindow.show();
+    mainWindow.isVisible() ? mainWindow.setSkipTaskbar(false) : mainWindow.setSkipTaskbar(true);
   });
 };
 
@@ -82,7 +109,7 @@ app.on('activate', () => {
   }
 });
 
-app.on('will-quit', function() {
+app.on('will-quit', function () {
   // Unregister a shortcut.
   globalShortcut.unregister('ctrl+shift+u');
 
