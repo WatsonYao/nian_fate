@@ -55,14 +55,14 @@
     </style>
 </head>
 <body>
-<div class="row" style="height: 90vh;margin-left:0px; margin-right:0px;">
-    <div class="col-2" style="height: 85vh; display: flex;flex-direction: column">
+<div class="row" style="height: 94vh;margin-left:0px; margin-right:0px;">
+    <div class="col-2" style="height: 90vh; display: flex;flex-direction: column;padding-right: 0px">
         <div class="d-flex align-items-center">
             <div class="p-2 mr-auto">
                 <span class="h6">记本</span>
             </div>
             <div class="p-2">
-                <button id="updateDream" type="button" class="btn btn-light btn-sm ">
+                <button id="updateDream" type="button" class="btn btn-outline-secondary btn-sm">
                     <span>刷新</span>
                 </button>
             </div>
@@ -70,19 +70,19 @@
         <ul id="dream_list" class="list-group" style="height:80vh;overflow:auto; position: relative;">
         </ul>
     </div>
-    <div class="col-3" style="height: 85vh;display: flex;flex-direction: column">
+    <div class="col-3" style="height: 90vh;display: flex;flex-direction: column">
         <div class="d-flex align-items-center">
             <div class="p-2 mr-auto">
                 <span class="h6">进展</span>
             </div>
             <div class="p-2">
-                <button id="stepSearch" type="button" class="btn btn-light btn-sm"
+                <button id="stepSearch" type="button" class="btn btn-outline-secondary btn-sm"
                         data-toggle="modal" data-target="#searchModal">
                     <span>搜索</span>
                 </button>
             </div>
             <div class="p-2">
-                <button id="newContent" type="button" class="btn btn-light btn-sm">
+                <button id="newContent" type="button" class="btn btn-outline-secondary btn-sm">
                     <span>新增</span>
                 </button>
             </div>
@@ -90,13 +90,13 @@
         <ul id="step_list" class="list-group" style="height:80vh;overflow:auto; position: relative;">
         </ul>
     </div>
-    <div class="col-7" style="height: 85vh;display: flex;flex-direction: column">
+    <div class="col-7" style="height: 90vh;display: flex;flex-direction: column">
         <div class="d-flex align-items-center">
-            <div class="p-2 mr-auto">
-                <span id="message"></span>
+            <div class="p-2 mr-auto small text-muted">
+                <span id="stepCreatAt"></span>
             </div>
             <div class="p-2">
-                <button id="updateContent" type="button" class="btn btn-primary " style="width: 8rem">
+                <button id="updateContent" type="button" class="btn btn-primary" style="width: 8rem">
                     <span>更新</span>
                 </button>
             </div>
@@ -104,40 +104,43 @@
         <div class="row" style="padding-right: 1rem">
             <div id="updateEditor" class="col-12 form-control"
                  contenteditable="true"
-                 style="height: 80vh;overflow:auto;min-height: 280px;padding: 1rem;"></div>
+                 style="height: 85vh;overflow:auto;min-height: 280px;padding: 1rem;"></div>
         </div>
     </div>
 </div>
-<div class="row align-items-center"
-     style="height: 10vh;padding: 1rem;margin-left:0px; margin-right:0px;">
-    <div class="col-2">
-        <button id="connect" type="button" class="btn btn-primary">
+<div class="d-flex flex-row align-items-center border-top"
+     style="height: 6vh; padding-left:16px;margin-left:0px; margin-right:0px;margin-bottom: 0px;padding-bottom: 0px">
+    <div>
+        <button id="connect" type="button" class="btn btn-primary btn-sm">
             <span>连接到 nian</span>
         </button>
     </div>
     <!-- ---------------- 连接配置 -->
-    <div class="col-3 input-group">
-        <input id="host_ip" class="form-control" type="text" placeholder="主机地址">
+    <div class="col-2 input-group input-group-sm">
+        <input id="host_ip" class="form-control input-sm" type="text" placeholder="主机地址">
         <div class="input-group-append">
-            <button id="toggle_host_ip" class="btn btn-outline-secondary btn-sm" type="submit">隐藏</button>
+
         </div>
     </div>
-    <div class="col-3 input-group">
-        <input id="host_port" class="form-control" type="text" placeholder="端口">
-        <div class="input-group-append">
-            <button id="toggle_host_port" class="btn btn-outline-secondary btn-sm" type="submit">隐藏</button>
-        </div>
+    <div class="col-2 input-group input-group-sm">
+        <input id="host_port" class="form-control input-sm" type="text" placeholder="端口">
     </div>
+    <button id="toggle_host_address" class="btn btn-outline-secondary btn-sm" type="submit">隐藏地址</button>
     <!-- ---------------- 连接信息 -->
-    <div class="col-2">
-        <span id="local_client" class="small">本机地址</span>
+    <div class="">
+        <span id="local_client" class="small" style="padding-left: 1rem">本机地址</span>
     </div>
-    <div class="col-2">
+    <div class="">
         <!-- ---------------- 状态信息 -->
-        <span id="connect_state" class="small">连接状态</span>
+        <span id="connect_state" class="small" style="padding-left: 1rem">连接状态</span>
+    </div>
+    <div class="">
+        <!-- ---------------- 提示信息 -->
+        <span id="message" class="text-danger small" style="padding-left: 1rem"></span>
     </div>
 
 </div>
+<!--搜索弹窗-->
 <div class="modal fade" id="searchModal">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -158,7 +161,7 @@
     </div>
 </div>
 <div class="versionBar" id="versionBar">
-    <span style="font-size: 0.7rem;color:#B3E5FC">alpha02</span>
+    <span class="text-muted" style="font-size: 0.7rem;padding-right: 4px">alpha02</span>
 </div>
 </body>
 <!-- Required MDC Web JavaScript library -->

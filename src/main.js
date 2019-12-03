@@ -38,13 +38,11 @@ const createWindow = () => {
   // and load the index.html of the app.
   mainWindow.loadURL(`file://${__dirname}/index.html`);
 
-  // Open the DevTools.
-
-
   var appMenuTemplate = [];
   const menu = Menu.buildFromTemplate(appMenuTemplate);
 
   const ret = globalShortcut.register('ctrl+shift+u', () => {
+    // Open the DevTools.
     mainWindow.webContents.openDevTools();
   });
 

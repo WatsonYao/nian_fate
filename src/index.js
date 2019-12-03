@@ -32,12 +32,12 @@ const connectButton = document.getElementById('connect');
 const updateContent = document.getElementById('updateContent');
 const newContent = document.getElementById('newContent');
 const messageView = document.getElementById('message');
-const toggleHostIP = document.getElementById('toggle_host_ip');
-const toggleHostPort = document.getElementById('toggle_host_port');
+const toggleHostAddress = document.getElementById('toggle_host_address');
 const updateDream = document.getElementById('updateDream');
 const searchBtn = document.getElementById('search');
 const searchWordEditor = document.getElementById('searchWord');
 const versionBar = document.getElementById('versionBar');
+const stepCreatAt = document.getElementById('stepCreatAt');
 
 var connected = false;
 var currentStep = null;
@@ -46,28 +46,21 @@ var showHostIP = true;
 var showHostPort = true;
 
 let noConnectMsg = '先连接，后使用';
-versionBar.onclick = function(event){
+versionBar.onclick = function (event) {
   event.preventDefault();
   var shell = require('electron').shell;
-  shell.openExternal("https://github.com/WatsonYao/nian_fate");
+  shell.openExternal('https://github.com/WatsonYao/nian_fate');
 };
 
-toggleHostIP.onclick = function () {
+toggleHostAddress.onclick = function () {
   if (showHostIP) {
     hostIP.setAttribute('type', 'password');
-  } else {
-    hostIP.setAttribute('type', 'text');
-  }
-  showHostIP = !showHostIP;
-};
-
-toggleHostPort.onclick = function () {
-  if (showHostPort) {
     hostPort.setAttribute('type', 'password');
   } else {
+    hostIP.setAttribute('type', 'text');
     hostPort.setAttribute('type', 'text');
   }
-  showHostPort = !showHostPort;
+  showHostIP = !showHostIP;
 };
 
 updateDream.onclick = function () {
@@ -162,7 +155,7 @@ function showDreams(dreams) {
     let item = dreams[i];
     let li = document.createElement('li');
     if (currentDream != null && item.id == currentDream.id) {
-      li.className = 'list-group-item dream list-group-item-primary';
+      li.className = 'list-group-item dream list-group-item-secondary';
     } else {
       li.className = 'list-group-item dream';
     }
@@ -175,22 +168,25 @@ function showDreams(dreams) {
   }
 }
 
+let totalSteps = [];
+
 function showStepList(steps) {
   // 删除之前的
   stepList.innerText = '';
+  totalSteps = steps;
   for (let i = 0; i < steps.length; i++) {
     let li = document.createElement('li');
     let item = steps[i];
     let content = getShortContent(item.content);
     li.innerText = content;
     if (item.selected) {
-      li.className = 'list-group-item step list-group-item-primary';
+      li.className = 'list-group-item step list-group-item-secondary';
     } else {
       li.className = 'list-group-item step';
     }
     li.id = item.id;
     li.onclick = function () {
-      clickStepDetail(item);
+      clickStepDetail(i);
     };
     stepList.appendChild(li);
   }
@@ -220,11 +216,25 @@ function clickSearchStep(item) {
   clipboard.writeText(item.content);
 }
 
-function clickStepDetail(item) {
+function clickStepDetail(position) {
+  let item = totalSteps[position];
   currentStep = item;
   updateEditor.innerText = item.content;
+  stepCreatAt.innerText = timestampToTime(item.createAt);
   updateStepsSelected();
 }
+
+function timestampToTime(timestamp) {
+  let date = new Date(timestamp * 1000);//时间戳为10位需*1000，时间戳为13位的话不需乘1000
+  let Y = date.getFullYear() + '-';
+  let M = (date.getMonth() + 1 < 10 ? '0' + (date.getMonth() + 1) : date.getMonth() + 1) + '-';
+  let D = date.getDate() + ' ';
+  let h = date.getHours() + ':';
+  let m = date.getMinutes() + ':';
+  let s = date.getSeconds();
+  return Y + M + D + h + m + s;
+
+};
 
 function pushUpdate() {
   if (connected == false) {
@@ -246,11 +256,12 @@ function pushUpdate() {
   ws.send(JSON.stringify(step));
   // 发送成功，才能更新 steps 里面的content //todo
   // 找到 显示的那个布局
-  let updateStep = document.getElementsByClassName('list-group-item step list-group-item-primary');
+  let updateStep = document.getElementsByClassName('list-group-item step list-group-item-secondary');
   for (let i = 0; i < updateStep.length; i++) {
     if (updateStep[i].id == currentStep.id) {
       let content = getShortContent(updateEditor.innerText);
-      updateStep[i].innerHTML = content;
+      updateStep[i].innerText = content;
+      totalSteps[i].content = updateEditor.innerText;
     }
   }
 }
@@ -288,7 +299,7 @@ function updateDreamSelected() {
   let dreams = document.getElementsByClassName('list-group-item dream');
   for (let i = 0; i < dreams.length; i++) {
     if (dreams[i].id == currentDream.id) {
-      dreams[i].className = 'list-group-item dream list-group-item-primary';
+      dreams[i].className = 'list-group-item dream list-group-item-secondary';
     } else {
       dreams[i].className = 'list-group-item dream';
     }
@@ -299,7 +310,7 @@ function updateStepsSelected() {
   let steps = document.getElementsByClassName('list-group-item step');
   for (let i = 0; i < steps.length; i++) {
     if (steps[i].id == currentStep.id) {
-      steps[i].className = 'list-group-item step list-group-item-primary';
+      steps[i].className = 'list-group-item step list-group-item-secondary';
     } else {
       steps[i].className = 'list-group-item step';
     }
@@ -316,7 +327,7 @@ function pushAdd() {
     return;
   }
   if (currentDream == null) {
-    messageView.innerText = '当前没有选择记本';
+    messageView.innerText = '未选择记本';
     return;
   }
   messageView.innerText = '';
@@ -336,11 +347,11 @@ function connectButtonUpdate(flag) {
   if (flag) {
     connectState.innerText = '连接成功';
     connectButton.innerText = '已连接';
-    connectButton.className = 'btn btn-success btn-block';
+    connectButton.className = 'btn btn-success btn-sm';
   } else {
     connectState.innerText = '连接已关闭';
     connectButton.innerText = '连接到 nian';
-    connectButton.className = 'btn btn-danger btn-block';
+    connectButton.className = 'btn btn-danger btn-sm';
   }
 }
 
@@ -389,7 +400,7 @@ function actionOfPushDevice() {
 function clearInnerTextOfDreamAndStep() {
   dreamList.innerText = '';
   stepList.innerText = '';
-  updateEditor.innerText = '';
+  //updateEditor.innerText = '';
   currentStep = null;
   currentDream = null;
   messageView.innerText = '';
@@ -483,7 +494,7 @@ function pasteClipToContent() {
     imageView.style.display = '';
     imageView.src = image.toDataURL();
   } else {
-    console.error('不是图片');
+    console.error('not image');
   }
 }
 
