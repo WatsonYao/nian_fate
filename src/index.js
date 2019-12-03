@@ -1,16 +1,12 @@
-import { ipcRenderer, remote } from 'electron';
 import {
   ACTION_ADD,
   ACTION_INFO,
   ACTION_LIST,
   ACTION_SEARCH,
   ACTION_UPDATE,
-  ASYNCHRONOUS_MSG_REPLY,
   MODULE_DREAM,
   MODULE_STEP,
   MODULE_SYS,
-  REPLAY_PUSH_IMG,
-  REPLY_PASTE,
   VERSION,
 } from './const';
 
@@ -65,8 +61,15 @@ toggleHostAddress.onclick = function () {
 
 updateDream.onclick = function () {
   console.log('update dream list');
+  clearSteps();
   actionOfGetDream();
 };
+
+function clearSteps() {
+  stepList.innerText = '';
+  currentStep = null;
+  totalSteps = [];
+}
 
 connectButton.onclick = function () {
   // 判断当前是否是连接状态，如果是连接，则是断开连接的操作
@@ -464,42 +467,3 @@ function closeListener() {
   stepList.innerText = '';
 }
 
-ipcRenderer.on(ASYNCHRONOUS_MSG_REPLY, (event, arg) => {
-  console.log(`replay arg=${arg}`);
-  switch (arg) {
-    case REPLY_PASTE:
-      pasteClipToContent();
-      break;
-    case REPLAY_PUSH_IMG:
-      pushImage();
-    default:
-  }
-});
-
-
-// 粘贴图片相关
-let imageWidth = 0;
-let imageHeight = 0;
-
-function pasteClipToContent() {
-  console.log('paste');
-  const image = clipboard.readImage();
-  if (image) {
-    let size = image.getSize();
-    imageWidth = size.width;
-    imageHeight = size.height;
-    console.info('imageWidth', imageWidth);
-    console.info('imageHeight', imageHeight);
-    console.info('image', image);
-    imageView.style.display = '';
-    imageView.src = image.toDataURL();
-  } else {
-    console.error('not image');
-  }
-}
-
-function pushImage() {
-  const image = clipboard.readImage();
-  const data = image.toDataURL();
-  ws.send(data, { binary: true });
-}
