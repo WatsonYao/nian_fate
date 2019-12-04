@@ -39,12 +39,13 @@ var connected = false;
 var currentStep = null;
 var currentDream = null;
 var showHostIP = true;
-var showHostPort = true;
 
 let noConnectMsg = '先连接，后使用';
+let connecting = false;
+
 versionBar.onclick = function (event) {
   event.preventDefault();
-  var shell = require('electron').shell;
+  let shell = require('electron').shell;
   shell.openExternal('https://github.com/WatsonYao/nian_fate');
 };
 
@@ -362,6 +363,7 @@ function connectButtonUpdate(flag) {
 // 连接状态
 function onopen(e) {
 // 连接建立时触发函数
+  connecting = false;
   console.log('onopen readyState', ws.readyState);
   console.log('onopen e', e);
   connectButtonUpdate(true);
@@ -376,7 +378,7 @@ function onopen(e) {
 }
 
 function actionOfGetDream() {
-  if (connected == false) {
+  if (connected === false) {
     messageView.innerText = noConnectMsg;
     return;
   }
@@ -411,7 +413,10 @@ function clearInnerTextOfDreamAndStep() {
 
 function startListener() {
   connectState.innerText = '连接中 ...';
-
+  if (connecting) {
+    return;
+  }
+  connecting = true;
   const hostIPValue = hostIP.value;
   const hostPortValue = hostPort.value;
   console.log(`hostIP ${hostIPValue}`);
@@ -431,10 +436,12 @@ function startListener() {
 
   ws.onclose = (event) => {
     connected = false;
+    connecting = false;
     console.log('ws onclose', event);
     connectButtonUpdate(false);
   };
   ws.onerror = (event) => {
+    connecting = false;
     console.log('ws onError', event);
     connectState.innerText = `连接出错 ${event}`;
   };
@@ -442,16 +449,16 @@ function startListener() {
   ws.onmessage = (event) => {
     let item = JSON.parse(event.data);
     console.log(`server message=${item.module}+${item.action}`);
-    if (item.module == MODULE_DREAM && item.action == ACTION_LIST) {
+    if (item.module === MODULE_DREAM && item.action === ACTION_LIST) {
       showDreams(item.content);
 
-    } else if (item.module == MODULE_STEP && item.action == ACTION_LIST) {
+    } else if (item.module === MODULE_STEP && item.action === ACTION_LIST) {
       showStepList(item.content);
 
-    } else if (item.module == MODULE_STEP && item.action == ACTION_ADD) {
+    } else if (item.module === MODULE_STEP && item.action === ACTION_ADD) {
       clickDreamDetail(currentDream);
 
-    } else if (item.module == MODULE_STEP && item.action == ACTION_SEARCH) {
+    } else if (item.module === MODULE_STEP && item.action === ACTION_SEARCH) {
       showSearchStep(item.content);
 
     } else {

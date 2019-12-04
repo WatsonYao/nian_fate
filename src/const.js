@@ -1,10 +1,5 @@
 module.exports = {
   VERSION: 1,
-  ASYNCHRONOUS_MSG: 'asynchronous-msg',
-  ASYNCHRONOUS_MSG_REPLY: 'asynchronous-msg-reply',
-  REPLAY_PUSH_IMG: 'push_img',
-  REPLY_PASTE: 'paste',
-
   MODULE_SYS: 'sys',
   MODULE_DREAM: 'dream',
   MODULE_STEP: 'step',
