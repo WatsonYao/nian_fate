@@ -1,5 +1,4 @@
 import { app, BrowserWindow, shell, Menu, MenuItem, ipcMain, globalShortcut, Tray } from 'electron';
-import { ASYNCHRONOUS_MSG, ASYNCHRONOUS_MSG_REPLY } from './const';
 
 const path = require('path');
 const Store = require('electron-store');
@@ -48,11 +47,11 @@ const createWindow = () => {
 
   // var appMenuTemplate = [];
   // const menu = Menu.buildFromTemplate(appMenuTemplate);
-  Menu.setApplicationMenu(null);
+
   mainWindow.on('close', (event) => {
     if (process.platform === 'darwin') {
       mainWindow = null;
-    }else{
+    } else {
       const size = mainWindow.getSize();
       store.set('width', size[0]);
       store.set('height', size[1]);
@@ -63,10 +62,6 @@ const createWindow = () => {
     }
   });
 
-  if (process.platform === 'darwin') {
-    //app.dock.setIcon(path.join(__dirname, 'images/app_icon'));
-  }
-
   // Emitted when the window is closed.
   mainWindow.on('closed', () => {
     mainWindow = null;
@@ -74,8 +69,26 @@ const createWindow = () => {
 
   if (process.platform === 'darwin') {
     //app.dock.setIcon(path.join(__dirname, 'images/app_icon'));
-
+    const template = [{
+      label: 'Application',
+      submenu: [
+        {
+          label: 'Quit', accelerator: 'Command+Q', click: function () {
+            app.quit();
+          }
+        }
+      ]
+    },
+      {
+        label: 'Edit',
+        submenu: [
+          { label: 'Copy', accelerator: 'CmdOrCtrl+C', selector: 'copy:' },
+          { label: 'Paste', accelerator: 'CmdOrCtrl+V', selector: 'paste:' },
+        ]
+      }];
+    Menu.setApplicationMenu(Menu.buildFromTemplate(template));
   } else {
+
     mainWindow.on('show', () => {
       tray.setHighlightMode('always');
     });
@@ -145,8 +158,4 @@ ipcMain.on('reqaction', (event, arg) => {
   }
 });
 
-ipcMain.on(ASYNCHRONOUS_MSG, (event, arg) => {
-  // 转发消息
-  event.sender.send(ASYNCHRONOUS_MSG_REPLY, arg);
-});
 
