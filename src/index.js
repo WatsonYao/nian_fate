@@ -221,6 +221,8 @@ function clickSearchStep(item) {
 }
 
 function clickStepDetail(position) {
+  console.log('position', position);
+  console.log('totalSteps', totalSteps);
   let item = totalSteps[position];
   currentStep = item;
   updateEditor.innerText = item.content;
@@ -265,9 +267,13 @@ function pushUpdate() {
     if (updateStep[i].id == currentStep.id) {
       let content = getShortContent(updateEditor.innerText);
       updateStep[i].innerText = content;
-      totalSteps[i].content = updateEditor.innerText;
     }
   }
+  totalSteps.forEach(function (step, index) {
+    if (step.id == currentStep.id) {
+      totalSteps[index].content = updateEditor.innerText;
+    }
+  });
 }
 
 let maxContentLength = 80;
