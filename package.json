@@ -51,7 +51,7 @@
     "electron-compile": "^6.4.4",
     "electron-squirrel-startup": "^1.0.0",
     "electron-store": "^5.0.0",
-    "ws": "^7.1.2"
+    "ws": "^7.4.6"
   },
   "devDependencies": {
     "babel-plugin-transform-async-to-generator": "^6.24.1",
